@@ -1,35 +1,41 @@
-name: Deploy
-
+# https://github.com/actions/deploy-pages#usage
+name: Deploy to GitHub Pages
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: 🛎️ Checkout code
-        uses: actions/checkout@v4
-
-      - name: 📦 Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - run: corepack enable
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
-
-      - name: 📥 Install dependencies
-        run: npm install
-
-      - name: 🏗️ Build
-        run: npm run build
-
-      - name: 🚀Deploy to GitHub Pages🚀
-        if: github.ref == 'refs/heads/main'
-        uses: peaceiris/actions-gh-pages@v4
+      # Pick your own package manager and build script
+      - run: npm install
+      - run: npx nuxt build --preset github_pages
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .output
+          path: ./.output/public
+  # Deployment job
+  deploy:
+    # Add a dependency to the build job
+    needs: build
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write # to deploy to Pages
+      id-token: write # to verify the deployment originates from an appropriate source
+    # Deploy to the github_pages environment
+    environment:
+      name: github_pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # Specify runner + deployment step
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
