@@ -21,13 +21,14 @@
         </div>
 
         <div class="h-8 flex">
-          <div class="text-gray-500 flex flex-col justify-center">
+          <!-- for show different result style -->
+          <!-- <div class="text-gray-500 flex flex-col justify-center">
             <div class="flex flex-col space-y-1">
               <div class="w-1 h-1 bg-gray-500 rounded-full"></div>
               <div class="w-1 h-1 bg-gray-500 rounded-full"></div>
               <div class="w-1 h-1 bg-gray-500 rounded-full"></div>
             </div>
-          </div>
+          </div> -->
           <div class="flex-grow"></div>
           <div class="text-right">
             <span class="fraction text-xl">
@@ -42,231 +43,37 @@
         </div>
       </div>
 
-      <!-- Top Menu Row -->
-      <div class="grid grid-cols-6 gap-1 mb-1">
-        <button class="bg-purple-700/80 text-white h-12 rounded-md flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <button class="bg-purple-600/80 text-white h-12 rounded-md flex items-center justify-center text-sm">
-          <span class="text-white">PRO</span>
-        </button>
-        <button class="bg-gray-800 text-white h-12 rounded-md flex items-center justify-center text-2xl">
-          <span>Σ</span>
-        </button>
-        <button class="bg-gray-800 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </button>
-        <button class="bg-gray-800 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          <span>%</span>
-        </button>
-        <button
-          class="bg-purple-600/80 text-white h-12 rounded-md flex items-center justify-center text-sm font-medium">
-          MORE
-        </button>
-      </div>
-
       <!-- Function Row -->
-      <div class="grid grid-cols-6 gap-1 mb-1">
-        <button class="bg-amber-500 text-black h-12 rounded-md flex items-center justify-center text-sm font-medium">
-          SHIFT
-        </button>
-        <button
-          class="bg-purple-500/80 text-white h-12 rounded-md flex items-center justify-center text-sm font-medium">
-          ALPHA
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          ◀
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          ▶
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-sm font-medium">
-          MODE
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-sm font-medium">
-          2nd
-        </button>
-      </div>
-
-      <!-- Additional Function Row -->
-      <div class="grid grid-cols-6 gap-1 mb-1 text-xs">
-        <div class="flex items-center justify-center text-amber-500">SOLVE</div>
-        <div class="flex items-center justify-center text-amber-500">=</div>
-        <div class="flex items-center justify-center text-amber-500">d/dx</div>
-        <div class="flex items-center justify-center text-amber-500">:</div>
-        <div class="flex items-center justify-center text-amber-500">x!</div>
-        <div class="flex items-center justify-center text-amber-500">Σ</div>
-      </div>
-
-      <!-- Scientific Functions Row 1 -->
-      <div class="grid grid-cols-6 gap-1 mb-1">
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-sm">
-          CALC
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-lg">
-          ∫dx
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          ▼
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          ▲
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-sm">
-          x<sup>-1</sup>
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-sm">
-          Log<sub>x</sub>y
-        </button>
+      <div class="grid grid-cols-5 gap-2 mb-2">
+        <KeyButton symbol="SHIFT" text-color="text-black" background-color="bg-amber-500" size="text-sm" />
+        <KeyButton v-for="btn in ['△', '▽', '◁', '▷']" :key="btn" :symbol="btn" />
       </div>
 
       <!-- Scientific Functions Row 2 -->
-      <div class="grid grid-cols-6 gap-1 mb-1">
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-lg">
-          x/y
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          √x
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-lg">
-          x<sup>2</sup>
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-lg">
-          x<sup>y</sup>
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-sm">
-          Log
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-lg">
-          Ln
-        </button>
+      <div class="grid grid-cols-5 gap-2 mb-2">
+        <KeyButton v-for="btn in ['x/y', '√x', 'x2', 'xy', 'Log']" :key="btn" :symbol="btn" size="text-lg" />
       </div>
 
       <!-- Scientific Functions Row 3 -->
-      <div class="grid grid-cols-6 gap-1 mb-1">
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          (−)
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          °'"
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-sm">
-          hyp
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-lg">
-          Sin
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-lg">
-          Cos
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-lg">
-          Tan
-        </button>
+      <div class="grid grid-cols-5 gap-2 mb-2">
+        <KeyButton v-for="btn in ['(−)', '°\'', 'hyp', 'Sin', 'Cos']" :key="btn" :symbol="btn" size="text-lg" />
       </div>
 
       <!-- Scientific Functions Row 4 -->
-      <div class="grid grid-cols-6 gap-1 mb-1">
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-sm">
-          RCL
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-sm">
-          ENG
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          (
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          )
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-sm">
-          S⇔D
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-sm">
-          M+
-        </button>
+      <div class="grid grid-cols-5 gap-2 mb-2">
+        <KeyButton v-for="btn in ['RCL', 'ENG', '(', ')', 'S⇔D']" :key="btn" :symbol="btn" />
       </div>
 
-      <!-- Number Pad Row 1 -->
-      <div class="grid grid-cols-6 gap-1 mb-1">
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          7
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          8
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          9
-        </button>
-        <button class="bg-orange-600 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          ×
-        </button>
-        <button class="bg-orange-600 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          AC
-        </button>
-      </div>
-
-      <!-- Number Pad Row 2 -->
-      <div class="grid grid-cols-6 gap-1 mb-1">
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          4
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          5
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          6
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          ×
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          ÷
-        </button>
-      </div>
-
-      <!-- Number Pad Row 3 -->
-      <div class="grid grid-cols-6 gap-1 mb-1">
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          1
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          2
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          3
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          +
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          −
-        </button>
+      <!-- Number Pad Rows -->
+      <div v-for="row in numPadRows" :key="row.id" class="grid grid-cols-5 gap-2 mb-2">
+        <KeyButton v-for="btn in row.buttons" :key="btn.symbol" :symbol="btn.symbol"
+          :text-color="btn.textColor || 'text-white'" :background-color="btn.bgColor || 'bg-gray-700'" size="text-lg" />
       </div>
 
       <!-- Number Pad Row 4 -->
-      <div class="grid grid-cols-6 gap-1">
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          0
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          .
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-lg">
-          Exp
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-lg">
-          Ans
-        </button>
-        <button class="bg-gray-700 text-white h-12 rounded-md flex items-center justify-center text-xl">
-          =
-        </button>
+      <div class="grid grid-cols-5 gap-2">
+        <KeyButton v-for="btn in ['0', '.', 'Exp', 'Ans', '=']" :key="btn" :symbol="btn"
+          :background-color="btn === '=' ? 'bg-green-500' : undefined" />
       </div>
     </div>
   </div>
@@ -278,6 +85,40 @@ import { definePageMeta } from '#imports'
 definePageMeta({
   colorMode: 'light',
 })
+
+const numPadRows = [
+  {
+    id: 1,
+    buttons: [
+      { symbol: '7' },
+      { symbol: '8' },
+      { symbol: '9' },
+      { symbol: 'DEL', textColor: 'text-black', bgColor: 'bg-amber-500' },
+      { symbol: 'AC', textColor: 'text-black', bgColor: 'bg-amber-500' },
+    ],
+  },
+  {
+    id: 2,
+    buttons: [
+      { symbol: '4' },
+      { symbol: '5' },
+      { symbol: '6' },
+      { symbol: '×' },
+      { symbol: '÷' },
+    ],
+  },
+  {
+    id: 3,
+    buttons: [
+      { symbol: '1' },
+      { symbol: '2' },
+      { symbol: '3' },
+      { symbol: "+" },
+      { symbol: '-' },
+    ],
+  },
+]
+
 </script>
 
 <style scoped>
