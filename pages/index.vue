@@ -4,42 +4,28 @@
       <!-- Calculator Display -->
       <div class="bg-gray-200/90 rounded-lg p-4 mb-2 h-40 flex flex-col justify-between">
         <div class="flex justify-between">
-          <div class="text-2xl font-medium">
-            <span class="inline-block">
-              <span class="fraction">
-                <span class="numerator">1</span>
-                <span class="denominator">3</span>
-              </span>
-              +
-              <span class="fraction">
-                <span class="numerator">1</span>
-                <span class="denominator">4</span>
-              </span>
+          <div class="text-xl font-medium">
+            <span class="inline-block" v-html="displayExpression">
+
             </span>
           </div>
-          <div></div>
         </div>
 
+        <!-- fraction answer -->
         <div class="h-8 flex">
-          <!-- for show different result style -->
-          <!-- <div class="text-gray-500 flex flex-col justify-center">
-            <div class="flex flex-col space-y-1">
-              <div class="w-1 h-1 bg-gray-500 rounded-full"></div>
-              <div class="w-1 h-1 bg-gray-500 rounded-full"></div>
-              <div class="w-1 h-1 bg-gray-500 rounded-full"></div>
+          <div class="flex-grow">
+            <div class="text-right">
+              <span class="fraction text-xl" v-if="floatResult">
+                <span class="numerator">{{ fractionResult.numerator }} </span>
+                <span class="denominator">{{ fractionResult.denominator }} </span>
+              </span>
             </div>
-          </div> -->
-          <div class="flex-grow"></div>
-          <div class="text-right">
-            <span class="fraction text-xl">
-              <span class="numerator">7</span>
-              <span class="denominator">12</span>
-            </span>
           </div>
         </div>
 
-        <div class="text-right text-lg">
-          = 0.583 333 333 33
+        <!-- floating answer -->
+        <div class="text-right text-lg" if v-if="floatResult">
+          = {{ floatResult }}
         </div>
       </div>
 
@@ -80,7 +66,21 @@
 </template>
 
 <script setup lang="ts">
-import { definePageMeta } from '#imports'
+import { definePageMeta, Expression } from '#imports'
+const expression = Expression.getInstance();
+
+
+const displayExpression = computed(() => {
+  return expression.getHTMLExpression()
+})
+
+const floatResult = expression.getResult()
+
+
+const fractionResult = {
+  numerator: expression.getNumerator(),
+  denominator: expression.getDenominator()
+}
 
 definePageMeta({
   colorMode: 'light',
