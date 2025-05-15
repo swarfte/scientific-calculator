@@ -124,7 +124,8 @@ export class CharacterFactory {
   ): Character {
     if (
       this.NumberCharacter.includes(character) ||
-      character.match(/^\d+(\.\d+)?$/)
+      character.match(/^\d+(\.\d+)?$/) || // for 12.34
+      character.match(/^\d+\./) // for 12.
     ) {
       return new NumberCharacter(parseInt(character));
     } else if (this.OperationCharacter.includes(character)) {

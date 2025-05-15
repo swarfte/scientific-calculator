@@ -15,16 +15,18 @@
         <div class="h-8 flex">
           <div class="flex-grow">
             <div class="text-right">
-              <span class="fraction text-xl" v-if="floatResult">
+              <span v-if="floatResult && Number(floatResult) / Number(fractionResult.numerator.value) !== 1"
+                class="fraction text-xl">
                 <span class="numerator">{{ fractionResult.numerator }} </span>
-                <span class="denominator">{{ fractionResult.denominator }} </span>
+                <span class="denominator">{{ fractionResult.denominator }}
+                </span>
               </span>
             </div>
           </div>
         </div>
 
         <!-- floating answer -->
-        <div class="text-right text-lg" if v-if="floatResult">
+        <div v-if="floatResult" class="text-right text-lg" if>
           = {{ floatResult }}
         </div>
       </div>
@@ -42,7 +44,7 @@
 
       <!-- Scientific Functions Row 3 -->
       <div class="grid grid-cols-5 gap-2 mb-2">
-        <KeyButton v-for="btn in ['(−)', '°\'', 'hyp', 'Sin', 'Cos']" :key="btn" :symbol="btn" size="text-lg" />
+        <KeyButton v-for="btn in ['(−)', '°\'', 'Sin', 'Cos', 'Tan']" :key="btn" :symbol="btn" size="text-lg" />
       </div>
 
       <!-- Scientific Functions Row 4 -->
@@ -53,14 +55,10 @@
       <!-- Number Pad Rows -->
       <div v-for="row in numPadRows" :key="row.id" class="grid grid-cols-5 gap-2 mb-2">
         <KeyButton v-for="btn in row.buttons" :key="btn.symbol" :symbol="btn.symbol"
-          :text-color="btn.textColor || 'text-white'" :background-color="btn.bgColor || 'bg-gray-700'" size="text-lg" />
+          :text-color="btn.textColor || 'text-white'" :background-color="btn.bgColor || 'bg-gray-700'" size="text-lg"
+          :callback="(btn as any).callback" />
       </div>
 
-      <!-- Number Pad Row 4 -->
-      <div class="grid grid-cols-5 gap-2">
-        <KeyButton v-for="btn in ['0', '.', 'Exp', 'Ans', '=']" :key="btn" :symbol="btn"
-          :background-color="btn === '=' ? 'bg-green-500' : undefined" />
-      </div>
     </div>
   </div>
 </template>
@@ -88,13 +86,18 @@ definePageMeta({
 
 const numPadRows = [
   {
-    id: 1,
+    id: 3,
     buttons: [
       { symbol: '7' },
       { symbol: '8' },
       { symbol: '9' },
-      { symbol: 'DEL', textColor: 'text-black', bgColor: 'bg-amber-500' },
-      { symbol: 'AC', textColor: 'text-black', bgColor: 'bg-amber-500' },
+      {
+        symbol: 'DEL', textColor: 'text-black', bgColor: 'bg-amber-500'
+        , callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.removeLastCharacter(); }
+      },
+      {
+        symbol: 'AC', textColor: 'text-black', bgColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.clear(); }
+      },
     ],
   },
   {
@@ -108,7 +111,7 @@ const numPadRows = [
     ],
   },
   {
-    id: 3,
+    id: 1,
     buttons: [
       { symbol: '1' },
       { symbol: '2' },
@@ -117,6 +120,24 @@ const numPadRows = [
       { symbol: '-' },
     ],
   },
+  {
+    id: 0,
+    buttons: [
+      { symbol: '0' },
+      { symbol: '.' },
+      { symbol: 'Ans', bgColor: "bg-green-500" },
+      { symbol: '%' },
+      {
+        symbol: '=', textColor: 'text-black', bgColor: 'bg-amber-500', callback: (expression: Expression, characterFactory: CharacterFactory) => {
+          expression.savePreviousAnswer();
+          const previousAnswer = expression.getPreviousAnswer();
+          console.log('Previous Answer:', previousAnswer);
+          const character = characterFactory.createCharacter(String(previousAnswer.value));
+          expression.addCharacter(character);
+        }
+      },
+    ]
+  }
 ]
 
 </script>

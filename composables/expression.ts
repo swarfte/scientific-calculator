@@ -4,7 +4,7 @@ import {
   OperationCharacter,
   FractionCharacter,
 } from "@composables/character";
-import { evaluate, gcd } from "mathjs";
+import { evaluate } from "mathjs";
 import { ref } from "vue";
 import { Render } from "@composables/render";
 
@@ -13,6 +13,7 @@ export class Expression {
   private result = ref(0);
   private numerator = ref(0);
   private denominator = ref(1);
+  private previousAnswer = ref(0);
   private static instance: Expression = new Expression(); // Singleton instance
   private constructor() {}
 
@@ -29,6 +30,18 @@ export class Expression {
 
   getDenominator() {
     return this.denominator;
+  }
+
+  getPreviousAnswer() {
+    return this.previousAnswer;
+  }
+
+  savePreviousAnswer() {
+    this.previousAnswer.value = this.result.value;
+    this.result.value = 0;
+    this.numerator.value = 0;
+    this.denominator.value = 1;
+    this.characters.value = [];
   }
 
   addCharacter(character: Character) {
@@ -85,10 +98,13 @@ export class Expression {
   clear() {
     this.characters.value = [];
     this.result.value = 0;
+    this.numerator.value = 0;
+    this.denominator.value = 1;
   }
 
   removeLastCharacter() {
     this.characters.value.pop();
+    this.calculate();
   }
 
   removeCharacterAtIndex(index: number) {

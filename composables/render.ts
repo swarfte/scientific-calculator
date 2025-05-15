@@ -34,8 +34,11 @@ export class Render {
   calculateRender() {
     const calculateExpression = this.symbolRender();
     let previousType = "empty";
-    const tempQueue: string[] = [];
+    const cache: string[] = [];
     const result: string[] = [];
+
+    const ignoreListAtEnd = ["(", ")", "."];
+
     const characterFactory = CharacterFactory.getInstance();
     for (const character of calculateExpression) {
       const currentType = character.getType();
@@ -43,37 +46,29 @@ export class Render {
         continue;
       }
       if (currentType === previousType && currentType === "number") {
-        const previousCharacter = tempQueue.pop();
+        const previousCharacter = cache.pop();
         if (previousCharacter) {
           const newCharacter = characterFactory.createCharacter(
             previousCharacter + character.getValue()
           );
-          tempQueue.push(newCharacter.getValue());
+          cache.push(newCharacter.getValue());
         }
       } else {
-        if (tempQueue.length > 0) {
-          const previousCharacter = tempQueue.pop();
+        if (cache.length > 0) {
+          const previousCharacter = cache.pop();
           if (previousCharacter) {
             result.push(previousCharacter);
           }
         }
-        tempQueue.push(character.getValue());
+        cache.push(character.getValue());
       }
       previousType = currentType;
     }
     // Add the last character in the tempQueue to the result
-    if (tempQueue.length > 0) {
-      const previousCharacter = tempQueue.pop();
+    if (cache.length > 0) {
+      const previousCharacter = cache.pop();
       if (previousCharacter) {
         result.push(previousCharacter);
-      }
-    }
-
-    // if the last character is not a number, remove it
-    if (result.length > 0) {
-      const lastCharacter = result[result.length - 1];
-      if (isNaN(Number(lastCharacter)) && lastCharacter !== ")") {
-        result.pop();
       }
     }
 
@@ -82,7 +77,7 @@ export class Render {
 
   HTMLRender() {
     let previousType = "empty";
-    const tempQueue: Character[] = [];
+    const cache: Character[] = [];
     const result: Character[] = [];
     const characterFactory = CharacterFactory.getInstance();
 
@@ -92,28 +87,28 @@ export class Render {
         continue;
       }
       if (currentType === previousType && currentType === "number") {
-        const previousCharacter = tempQueue.pop();
+        const previousCharacter = cache.pop();
         if (previousCharacter) {
           const newCharacter = characterFactory.createCharacter(
             previousCharacter.getValue() + character.getValue()
           );
-          tempQueue.push(newCharacter);
+          cache.push(newCharacter);
         }
       } else {
-        if (tempQueue.length > 0) {
-          const previousCharacter = tempQueue.pop();
+        if (cache.length > 0) {
+          const previousCharacter = cache.pop();
           if (previousCharacter) {
             result.push(previousCharacter);
           }
         }
-        tempQueue.push(character);
+        cache.push(character);
       }
       previousType = currentType;
     }
 
     // Add the last character in the tempQueue to the result
-    if (tempQueue.length > 0) {
-      const previousCharacter = tempQueue.pop();
+    if (cache.length > 0) {
+      const previousCharacter = cache.pop();
       if (previousCharacter) {
         result.push(previousCharacter);
       }

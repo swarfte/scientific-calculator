@@ -2,7 +2,7 @@
 <template>
   <button :class="[prop.backgroundColor, prop.textColor, 'rounded-md h-12 flex items-center justify-center w-full']"
     class="boxed"
-    @click="prop.callback(expression, characterFactory) !== 'DEFAULT' ? prop.callback(expression, characterFactory) : defaultAction()">
+    @click="prop.callback ? prop.callback(expression, characterFactory) : defaultAction(expression, characterFactory)">
     <span :class="prop.size">{{ prop.symbol }}</span>
   </button>
 </template>
@@ -29,14 +29,14 @@ const prop = defineProps({
   },
   callback: {
     type: Function,
-    default: (expression: Expression, characterFactory: CharacterFactory) => { return "DEFAULT"; }
+    required: false,
   }
 });
 
 const characterFactory = CharacterFactory.getInstance();
 const expression = Expression.getInstance();
 
-function defaultAction() {
+function defaultAction(expression: Expression, characterFactory: CharacterFactory) {
   const character = characterFactory.createCharacter(prop.symbol);
   expression.addCharacter(character);
   expression.calculate();
