@@ -1,4 +1,4 @@
-import { type Character, CharacterFactory } from "@composables/character";
+import { Character, CharacterFactory } from "@composables/character";
 
 export class Render {
   constructor(private characters: Character[]) {}
@@ -8,111 +8,59 @@ export class Render {
       "×": "*",
       "÷": "/",
     };
-    const result: Character[] = [];
-    for (const character of this.characters) {
-      const type = character.getType();
-      if (type === "empty") {
-        continue;
-      }
-      if (type === "symbol") {
-        const value = character.getValue();
-        if (mappingList[value as keyof typeof mappingList]) {
-          const mappedValue = mappingList[value as keyof typeof mappingList];
-          const newCharacter =
-            CharacterFactory.getInstance().createCharacter(mappedValue);
-          result.push(newCharacter);
-        } else {
-          result.push(character);
-        }
+    const result: string[] = [];
+    const rawExpression = this.characters.map((character) => {
+      return character.getValue();
+    });
+
+    // replace the symbols with their corresponding values
+    for (const character of rawExpression) {
+      if (character in mappingList) {
+        result.push(mappingList[character as keyof typeof mappingList]);
       } else {
         result.push(character);
       }
     }
-    return result;
+    // join the array into a string
+    const joinedExpression = result.join("");
+    return joinedExpression;
   }
 
   calculateRender() {
-    const calculateExpression = this.symbolRender();
-    let previousType = "empty";
-    const cache: string[] = [];
-    const result: string[] = [];
-
-    const ignoreListAtEnd = ["(", ")", "."];
-
-    const characterFactory = CharacterFactory.getInstance();
-    for (const character of calculateExpression) {
-      const currentType = character.getType();
-      if (currentType === "empty") {
-        continue;
-      }
-      if (currentType === previousType && currentType === "number") {
-        const previousCharacter = cache.pop();
-        if (previousCharacter) {
-          const newCharacter = characterFactory.createCharacter(
-            previousCharacter + character.getValue()
-          );
-          cache.push(newCharacter.getValue());
-        }
-      } else {
-        if (cache.length > 0) {
-          const previousCharacter = cache.pop();
-          if (previousCharacter) {
-            result.push(previousCharacter);
-          }
-        }
-        cache.push(character.getValue());
-      }
-      previousType = currentType;
-    }
-    // Add the last character in the tempQueue to the result
-    if (cache.length > 0) {
-      const previousCharacter = cache.pop();
-      if (previousCharacter) {
-        result.push(previousCharacter);
-      }
-    }
-
-    return result.map((character) => character).join(" ");
+    const rawExpression = this.symbolRender();
+    return rawExpression;
   }
 
   HTMLRender() {
-    let previousType = "empty";
-    const cache: Character[] = [];
-    const result: Character[] = [];
+    const rawExpression = this.characters.map((character) => {
+      return character.getValue();
+    });
+    const joinedExpression = rawExpression.join("");
     const characterFactory = CharacterFactory.getInstance();
+    const operationCharacter = characterFactory.getOperationCharacter();
 
-    for (const character of this.characters) {
-      const currentType = character.getType();
-      if (currentType === "empty") {
-        continue;
-      }
-      if (currentType === previousType && currentType === "number") {
-        const previousCharacter = cache.pop();
-        if (previousCharacter) {
-          const newCharacter = characterFactory.createCharacter(
-            previousCharacter.getValue() + character.getValue()
-          );
-          cache.push(newCharacter);
-        }
+    // Escape regex special characters in operation symbols
+    const escapedOperations = operationCharacter.map((op) =>
+      op.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    );
+
+    // Create regex pattern with escaped operations
+    const pattern = new RegExp(`(${escapedOperations.join("|")})`, "g");
+
+    // Split the expression using the safe pattern
+    const splitExpression = joinedExpression.split(pattern);
+
+    const result: string[] = [];
+    for (const character of splitExpression) {
+      if (operationCharacter.includes(character)) {
+        result.push(`<span class="operation">${character}</span> \n`);
       } else {
-        if (cache.length > 0) {
-          const previousCharacter = cache.pop();
-          if (previousCharacter) {
-            result.push(previousCharacter);
-          }
-        }
-        cache.push(character);
+        result.push(`<span class="number">${character}</span> \n`);
       }
-      previousType = currentType;
     }
 
-    // Add the last character in the tempQueue to the result
-    if (cache.length > 0) {
-      const previousCharacter = cache.pop();
-      if (previousCharacter) {
-        result.push(previousCharacter);
-      }
-    }
-    return result.map((character) => character.export()).join(" ");
+    // Join the array into a string
+    const htmlExpression = result.join("");
+    return htmlExpression;
   }
 }

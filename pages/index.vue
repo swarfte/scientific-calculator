@@ -134,6 +134,7 @@ const numPadRows = [
           console.log('Previous Answer:', previousAnswer);
           const character = characterFactory.createCharacter(String(previousAnswer.value));
           expression.addCharacter(character);
+          console.log('Current Expression:', expression.getExpression());
         }
       },
     ]

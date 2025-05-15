@@ -42,6 +42,20 @@ export class NumberCharacter extends Character {
   }
 }
 
+export class PointCharacter extends Character {
+  constructor(private value: string) {
+    super("point", { value });
+  }
+
+  override export(): string {
+    return `<span class="point">${this.value}</span> \n`;
+  }
+
+  override getValue(): string {
+    return this.value;
+  }
+}
+
 export class OperationCharacter extends Character {
   constructor(private value: string) {
     super("symbol", { value });
@@ -96,19 +110,7 @@ export class ExecutionCharacter extends Character {
 
 export class CharacterFactory {
   private static instance: CharacterFactory = new CharacterFactory();
-  private NumberCharacter = [
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    ".",
-  ];
+  private NumberCharacter = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
   private OperationCharacter = ["+", "-", "×", "÷", "(", ")", "*", "/", "%"];
   private FractionCharacter = ["#"]; // 1#3 for 1/3
   private ExecutionCharacter = ["=", "DEL", "AC", "Ans"]; // for execution
@@ -118,16 +120,21 @@ export class CharacterFactory {
     return CharacterFactory.instance;
   }
 
+  getOperationCharacter() {
+    return this.OperationCharacter;
+  }
+
   createCharacter(
     character: string,
     executeFunction?: (expression: Expression) => void
   ): Character {
     if (
       this.NumberCharacter.includes(character) ||
-      character.match(/^\d+(\.\d+)?$/) || // for 12.34
-      character.match(/^\d+\./) // for 12.
+      character.match(/^\d+(\.\d+)?$/)
     ) {
       return new NumberCharacter(parseInt(character));
+    } else if (character === ".") {
+      return new PointCharacter(character);
     } else if (this.OperationCharacter.includes(character)) {
       return new OperationCharacter(character);
     } else if (this.FractionCharacter.includes(character)) {
