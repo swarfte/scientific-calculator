@@ -5,9 +5,7 @@
       <div class="bg-gray-200/90 rounded-lg p-4 mb-2 h-40 flex flex-col justify-between">
         <div class="flex justify-between">
           <div class="text-xl font-medium">
-            <span class="inline-block" v-html="displayExpression">
-
-            </span>
+            <span class="inline-block" v-html="displayExpression" />
           </div>
         </div>
 
@@ -30,33 +28,11 @@
           = {{ floatResult }}
         </div>
       </div>
-
-      <!-- Function Row -->
-      <div class="grid grid-cols-5 gap-2 mb-2">
-        <KeyButton symbol="SHIFT" text-color="text-black" background-color="bg-amber-500" size="text-sm" />
-        <KeyButton v-for="btn in ['△', '▽', '◁', '▷']" :key="btn" :symbol="btn" />
-      </div>
-
-      <!-- Scientific Functions Row 2 -->
-      <div class="grid grid-cols-5 gap-2 mb-2">
-        <KeyButton v-for="btn in ['x/y', '√x', 'x2', 'xy', 'Log']" :key="btn" :symbol="btn" size="text-lg" />
-      </div>
-
-      <!-- Scientific Functions Row 3 -->
-      <div class="grid grid-cols-5 gap-2 mb-2">
-        <KeyButton v-for="btn in ['(−)', '°\'', 'Sin', 'Cos', 'Tan']" :key="btn" :symbol="btn" size="text-lg" />
-      </div>
-
-      <!-- Scientific Functions Row 4 -->
-      <div class="grid grid-cols-5 gap-2 mb-2">
-        <KeyButton v-for="btn in ['RCL', 'ENG', '(', ')', 'S⇔D']" :key="btn" :symbol="btn" />
-      </div>
-
-      <!-- Number Pad Rows -->
+      <!-- Keyboard -->
       <div v-for="row in numPadRows" :key="row.id" class="grid grid-cols-5 gap-2 mb-2">
         <KeyButton v-for="btn in row.buttons" :key="btn.symbol" :symbol="btn.symbol"
-          :text-color="btn.textColor || 'text-white'" :background-color="btn.bgColor || 'bg-gray-700'" size="text-lg"
-          :callback="(btn as any).callback" />
+          :text-color="btn.textColor || 'text-white'" :background-color="btn.backgroundColor || 'bg-gray-700'"
+          size="text-lg" :callback="btn.callback" />
       </div>
 
     </div>
@@ -64,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { definePageMeta, Expression } from '#imports'
+import { definePageMeta, Expression, Debug, type KeyboardRow } from '#imports'
 const expression = Expression.getInstance();
 
 
@@ -84,7 +60,47 @@ definePageMeta({
   colorMode: 'light',
 })
 
-const numPadRows = [
+const numPadRows: KeyboardRow[] = [
+  {
+    id: 7,
+    buttons: [
+      { symbol: 'AI', backgroundColor: 'bg-green-500' },
+      { symbol: '△', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.moveIndexLocationToStart() } },
+      { symbol: '▽', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.moveIndexLocationToEnd() } },
+      { symbol: '◁', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.moveIndexLocationToLeft() } },
+      { symbol: '▷', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.moveIndexLocationToRight() } },
+    ],
+  },
+  {
+    id: 6,
+    buttons: [
+      { symbol: 'x/y' },
+      { symbol: '√x' },
+      { symbol: 'x^2' },
+      { symbol: 'x^y' },
+      { symbol: 'Log' },
+    ],
+  },
+  {
+    id: 5,
+    buttons: [
+      { symbol: '(−)' },
+      { symbol: '°\'' },
+      { symbol: 'Sin' },
+      { symbol: 'Cos' },
+      { symbol: 'Tan' },
+    ],
+  },
+  {
+    id: 4,
+    buttons: [
+      { symbol: 'RCL' },
+      { symbol: 'ENG' },
+      { symbol: '(' },
+      { symbol: ')' },
+      { symbol: 'S⇔D' },
+    ],
+  },
   {
     id: 3,
     buttons: [
@@ -92,11 +108,11 @@ const numPadRows = [
       { symbol: '8' },
       { symbol: '9' },
       {
-        symbol: 'DEL', textColor: 'text-black', bgColor: 'bg-amber-500'
-        , callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.removeLastCharacter(); }
+        symbol: '⌫', textColor: 'text-black', backgroundColor: 'bg-amber-500'
+        , callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.removeLeftSideCharacter(); }
       },
       {
-        symbol: 'AC', textColor: 'text-black', bgColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.clear(); }
+        symbol: 'AC', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.clear(); }
       },
     ],
   },
@@ -125,16 +141,15 @@ const numPadRows = [
     buttons: [
       { symbol: '0' },
       { symbol: '.' },
-      { symbol: 'Ans', bgColor: "bg-green-500" },
+      { symbol: 'Ans' },
       { symbol: '%' },
       {
-        symbol: '=', textColor: 'text-black', bgColor: 'bg-amber-500', callback: (expression: Expression, characterFactory: CharacterFactory) => {
+        symbol: '=', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, characterFactory: CharacterFactory) => {
           expression.savePreviousAnswer();
-          const previousAnswer = expression.getPreviousAnswer();
-          console.log('Previous Answer:', previousAnswer);
-          const character = characterFactory.createCharacter(String(previousAnswer.value));
+          const character = characterFactory.createCharacter("Ans");
           expression.addCharacter(character);
-          console.log('Current Expression:', expression.getExpression());
+          // Debug.info('Current Expression:', expression.getExpression());
+          expression.moveIndexLocationToEnd();
         }
       },
     ]
@@ -143,7 +158,7 @@ const numPadRows = [
 
 </script>
 
-<style scoped>
+<style>
 /* Custom CSS for fractions */
 .fraction {
   display: inline-block;
@@ -160,5 +175,21 @@ const numPadRows = [
 
 .numerator {
   border-bottom: 1px solid black;
+}
+
+@keyframes blink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+.animate-blink {
+  animation: blink 1s ease-in-out infinite;
 }
 </style>

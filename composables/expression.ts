@@ -3,17 +3,20 @@ import {
   NumberCharacter,
   OperationCharacter,
   FractionCharacter,
+  IndexCharacter,
 } from "@composables/character";
 import { evaluate } from "mathjs";
 import { ref } from "vue";
 import { Render } from "@composables/render";
+import { Debug } from "@composables/debug";
 
 export class Expression {
-  private characters = ref([] as Character[]);
   private result = ref(0);
   private numerator = ref(0);
   private denominator = ref(1);
   private previousAnswer = ref(0);
+  private indexLocation = ref(0);
+  private characters = ref([new IndexCharacter()] as Character[]);
   private static instance: Expression = new Expression(); // Singleton instance
   private constructor() {}
 
@@ -36,16 +39,21 @@ export class Expression {
     return this.previousAnswer;
   }
 
+  getIndexLocation() {
+    return this.indexLocation;
+  }
+
   savePreviousAnswer() {
     this.previousAnswer.value = this.result.value;
+    this.indexLocation.value = 0;
+    this.characters.value = [new IndexCharacter()];
     this.result.value = 0;
-    this.numerator.value = 0;
-    this.denominator.value = 1;
-    this.characters.value = [];
   }
 
   addCharacter(character: Character) {
-    this.characters.value.push(character);
+    // add the character as the left side of the index character
+    this.characters.value.splice(this.indexLocation.value, 0, character);
+    this.indexLocation.value++;
   }
 
   addNumber(number: number) {
@@ -64,17 +72,86 @@ export class Expression {
   }
 
   getExpression() {
-    const render = new Render(this.characters.value as Character[]);
+    const render = new Render(
+      this.characters.value as Character[],
+      this.previousAnswer.value
+    );
     return render.calculateRender();
   }
 
   getHTMLExpression() {
-    const render = new Render(this.characters.value as Character[]);
+    const render = new Render(
+      this.characters.value as Character[],
+      this.previousAnswer.value
+    );
     return render.HTMLRender();
   }
 
+  moveIndexLocation(index: number) {
+    if (index >= 0 && index < this.characters.value.length) {
+      this.indexLocation.value = index;
+    } else {
+      Debug.warn("Index out of bounds:", index);
+    }
+  }
+
+  moveIndexLocationToStart() {
+    // remove the index character from the expression by the index location
+    this.characters.value.splice(this.indexLocation.value, 1);
+    // add the index character to the start of the expression
+    this.characters.value.unshift(new IndexCharacter());
+    // set the index location to the start of the expression
+    this.indexLocation.value = 0;
+  }
+
+  moveIndexLocationToEnd() {
+    // remove the index character from the expression by the index location
+    this.characters.value.splice(this.indexLocation.value, 1);
+    // add the index character to the end of the expression
+    this.characters.value.push(new IndexCharacter());
+    // set the index location to the end of the expression
+    this.indexLocation.value = this.characters.value.length - 1;
+  }
+
+  moveIndexLocationToLeft() {
+    if (this.indexLocation.value > 0) {
+      // remove the index character from the expression by the index location
+      this.characters.value.splice(this.indexLocation.value, 1);
+      // add the index character to the left of the expression
+      this.characters.value.splice(
+        this.indexLocation.value - 1,
+        0,
+        new IndexCharacter()
+      );
+      // set the index location to the left of the expression
+      this.indexLocation.value--;
+    } else {
+      Debug.warn("Index out of bounds:", this.indexLocation.value);
+    }
+  }
+
+  moveIndexLocationToRight() {
+    if (this.indexLocation.value < this.characters.value.length) {
+      // remove the index character from the expression by the index location
+      this.characters.value.splice(this.indexLocation.value, 1);
+      // add the index character to the right of the expression
+      this.characters.value.splice(
+        this.indexLocation.value + 1,
+        0,
+        new IndexCharacter()
+      );
+      // set the index location to the right of the expression
+      this.indexLocation.value++;
+    } else {
+      Debug.warn("Index out of bounds:", this.indexLocation.value);
+    }
+  }
+
   calculate() {
-    const render = new Render(this.characters.value as Character[]);
+    const render = new Render(
+      this.characters.value as Character[],
+      this.previousAnswer.value
+    );
     const expression = render.calculateRender();
 
     try {
@@ -88,7 +165,7 @@ export class Expression {
       this.denominator.value = fraction.d;
       this.previousAnswer.value = this.result.value;
     } catch (error) {
-      console.warn("Error evaluating expression:", error);
+      Debug.warn("Error evaluating expression:", error);
       this.result.value = this.previousAnswer.value;
     }
   }
@@ -97,14 +174,21 @@ export class Expression {
     return this.characters;
   }
   clear() {
-    this.characters.value = [];
+    this.indexLocation.value = 0;
+    this.characters.value = [new IndexCharacter()];
     this.result.value = 0;
     this.numerator.value = 0;
     this.denominator.value = 1;
   }
 
-  removeLastCharacter() {
-    this.characters.value.pop();
+  removeLeftSideCharacter() {
+    // remove the left side character of the index character
+    if (this.indexLocation.value > 0) {
+      this.characters.value.splice(this.indexLocation.value - 1, 1);
+      this.indexLocation.value--;
+    } else {
+      Debug.warn("Index out of bounds:", this.indexLocation.value);
+    }
     this.calculate();
   }
 
@@ -112,7 +196,7 @@ export class Expression {
     if (index >= 0 && index < this.characters.value.length) {
       this.characters.value.splice(index, 1);
     } else {
-      console.error("Index out of bounds:", index);
+      Debug.warn("Index out of bounds:", index);
     }
   }
 }

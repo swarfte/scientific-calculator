@@ -1,12 +1,17 @@
-import { Character, CharacterFactory } from "@composables/character";
-
+import { type Character, CharacterFactory } from "@composables/character";
+import { Debug } from "#imports";
 export class Render {
-  constructor(private characters: Character[]) {}
+  constructor(
+    private characters: Character[],
+    private previousAnswer: number
+  ) {}
 
   symbolRender() {
     const mappingList = {
       "×": "*",
       "÷": "/",
+      "|": "", // hidden the index character
+      Ans: this.previousAnswer.toString(),
     };
     const result: string[] = [];
     const rawExpression = this.characters.map((character) => {
@@ -37,7 +42,9 @@ export class Render {
     });
     const joinedExpression = rawExpression.join("");
     const characterFactory = CharacterFactory.getInstance();
-    const operationCharacter = characterFactory.getOperationCharacter();
+    const operationCharacter = characterFactory
+      .getOperationCharacter()
+      .concat("|");
 
     // Escape regex special characters in operation symbols
     const escapedOperations = operationCharacter.map((op) =>
@@ -47,19 +54,26 @@ export class Render {
     // Create regex pattern with escaped operations
     const pattern = new RegExp(`(${escapedOperations.join("|")})`, "g");
 
+    // Debug.log("joinedExpression : ", joinedExpression);
     // Split the expression using the safe pattern
     const splitExpression = joinedExpression.split(pattern);
 
+    // remove empty strings from the array
+    const filteredSplitExpression = splitExpression.filter((item) => {
+      return item !== "";
+    });
+    Debug.log("filteredSplitExpression : ", filteredSplitExpression);
+
+    //Debug.log("indexLocation : ", indexLocation);
+
     const result: string[] = [];
-    for (const character of splitExpression) {
-      if (operationCharacter.includes(character)) {
-        result.push(`<span class="operation">${character}</span> \n`);
-      } else {
-        result.push(`<span class="number">${character}</span> \n`);
-      }
+
+    for (const character of filteredSplitExpression) {
+      result.push(characterFactory.createCharacter(character).export());
     }
 
     // Join the array into a string
+    Debug.log("result:", result);
     const htmlExpression = result.join("");
     return htmlExpression;
   }

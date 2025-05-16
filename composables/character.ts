@@ -1,5 +1,9 @@
+export interface CharacterData {
+  [key: string]: any;
+}
+
 export abstract class Character {
-  constructor(private type: string, private data: object) {}
+  constructor(private type: string, private data: CharacterData) {}
 
   abstract export(): string;
 
@@ -9,7 +13,7 @@ export abstract class Character {
     return this.type;
   }
 
-  getRawData(): object {
+  getRawData(): CharacterData {
     return this.data;
   }
 }
@@ -20,7 +24,7 @@ export class EmptyCharacter extends Character {
   }
 
   override export(): string {
-    return `<span class="empty"></span> \n`;
+    return `<span class="${this.getType()}"></span> \n`;
   }
 
   override getValue(): string {
@@ -34,7 +38,7 @@ export class NumberCharacter extends Character {
   }
 
   override export(): string {
-    return `<span class="number">${this.value}</span> \n`;
+    return `<span class="${this.getType()}">${this.value}</span> \n`;
   }
 
   override getValue(): string {
@@ -48,7 +52,7 @@ export class PointCharacter extends Character {
   }
 
   override export(): string {
-    return `<span class="point">${this.value}</span> \n`;
+    return `<span class="${this.getType()}">${this.value}</span> \n`;
   }
 
   override getValue(): string {
@@ -58,11 +62,11 @@ export class PointCharacter extends Character {
 
 export class OperationCharacter extends Character {
   constructor(private value: string) {
-    super("symbol", { value });
+    super("operation", { value });
   }
 
   override export(): string {
-    return `<span class="operation">${this.value}</span> \n`;
+    return `<span class="${this.getType()}">${this.value}</span> \n`;
   }
 
   override getValue(): string {
@@ -76,7 +80,7 @@ export class FractionCharacter extends Character {
   }
 
   override export(): string {
-    return `<span class="fraction">
+    return `<span class="${this.getType()}">
                 <span class="numerator">${this.numerator}</span>
                 <span class="denominator">${this.denominator}</span>
             </span> \n`;
@@ -100,7 +104,7 @@ export class ExecutionCharacter extends Character {
   }
 
   override export(): string {
-    return `<span class="execution">${this.value}</span> \n`;
+    return `<span class="${this.getType()}">${this.value}</span> \n`;
   }
 
   override getValue(): string {
@@ -108,12 +112,30 @@ export class ExecutionCharacter extends Character {
   }
 }
 
+export class IndexCharacter extends Character {
+  constructor() {
+    super("animate-blink", { symbol: "|" });
+  }
+
+  override export(): string {
+    return `<span class="${this.getType()}">${
+      this.getRawData().symbol
+    }</span> \n`;
+  }
+
+  override getValue(): string {
+    return this.getRawData().symbol;
+  }
+}
+
 export class CharacterFactory {
   private static instance: CharacterFactory = new CharacterFactory();
-  private NumberCharacter = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
-  private OperationCharacter = ["+", "-", "×", "÷", "(", ")", "*", "/", "%"];
-  private FractionCharacter = ["#"]; // 1#3 for 1/3
-  private ExecutionCharacter = ["=", "DEL", "AC", "Ans"]; // for execution
+  private numberCharacter = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+  private operationCharacter = ["+", "-", "×", "÷", "(", ")", "*", "/", "%"];
+  private fractionCharacter = ["#"]; // 1#3 for 1/3
+  private indexCharacter = ["|"]; // for index
+  private pointCharacter = ["."];
+  private executionCharacter = ["=", "DEL", "AC", "Ans"]; // for execution
   private constructor() {}
 
   static getInstance(): CharacterFactory {
@@ -121,29 +143,26 @@ export class CharacterFactory {
   }
 
   getOperationCharacter() {
-    return this.OperationCharacter;
+    return this.operationCharacter;
   }
 
   createCharacter(
     character: string,
     executeFunction?: (expression: Expression) => void
   ): Character {
-    if (
-      this.NumberCharacter.includes(character) ||
-      character.match(/^\d+(\.\d+)?$/)
-    ) {
+    if (!isNaN(parseFloat(character))) {
       return new NumberCharacter(parseInt(character));
-    } else if (character === ".") {
+    } else if (this.pointCharacter.includes(character)) {
       return new PointCharacter(character);
-    } else if (this.OperationCharacter.includes(character)) {
+    } else if (this.operationCharacter.includes(character)) {
       return new OperationCharacter(character);
-    } else if (this.FractionCharacter.includes(character)) {
-      return new FractionCharacter(0, 0); // Placeholder for fraction
-    } else if (this.ExecutionCharacter.includes(character)) {
+    } else if (this.executionCharacter.includes(character)) {
       return new ExecutionCharacter(
         character,
         executeFunction as (expression: Expression) => void
       );
+    } else if (this.indexCharacter.includes(character)) {
+      return new IndexCharacter();
     }
     return new EmptyCharacter(); // Return empty character for unknown input
   }
