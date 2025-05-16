@@ -1,13 +1,17 @@
 import { type Character, CharacterFactory } from "@composables/character";
 import { Debug } from "#imports";
 export class Render {
-  constructor(private characters: Character[]) {}
+  constructor(
+    private characters: Character[],
+    private previousAnswer: number
+  ) {}
 
   symbolRender() {
     const mappingList = {
       "×": "*",
       "÷": "/",
       "|": "", // hidden the index character
+      Ans: this.previousAnswer.toString(),
     };
     const result: string[] = [];
     const rawExpression = this.characters.map((character) => {
@@ -50,7 +54,7 @@ export class Render {
     // Create regex pattern with escaped operations
     const pattern = new RegExp(`(${escapedOperations.join("|")})`, "g");
 
-    Debug.log("joinedExpression : ", joinedExpression);
+    // Debug.log("joinedExpression : ", joinedExpression);
     // Split the expression using the safe pattern
     const splitExpression = joinedExpression.split(pattern);
 
@@ -60,12 +64,7 @@ export class Render {
     });
     Debug.log("filteredSplitExpression : ", filteredSplitExpression);
 
-    // find where is "|" (this index character) and split it as the single character
-    const indexLocation = filteredSplitExpression.findIndex((character) => {
-      return character === "|";
-    });
-
-    Debug.log("indexLocation : ", indexLocation);
+    //Debug.log("indexLocation : ", indexLocation);
 
     const result: string[] = [];
 

@@ -40,7 +40,7 @@ function defaultAction(expression: Expression, characterFactory: CharacterFactor
   const character = characterFactory.createCharacter(prop.symbol);
   expression.addCharacter(character);
   expression.calculate();
-  Debug.info("Default action :", character.getValue());
+  //Debug.info("Default action :", character.getValue());
 }
 
 </script>

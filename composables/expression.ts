@@ -45,7 +45,9 @@ export class Expression {
 
   savePreviousAnswer() {
     this.previousAnswer.value = this.result.value;
-    this.clear();
+    this.indexLocation.value = 0;
+    this.characters.value = [new IndexCharacter()];
+    this.result.value = 0;
   }
 
   addCharacter(character: Character) {
@@ -70,12 +72,18 @@ export class Expression {
   }
 
   getExpression() {
-    const render = new Render(this.characters.value as Character[]);
+    const render = new Render(
+      this.characters.value as Character[],
+      this.previousAnswer.value
+    );
     return render.calculateRender();
   }
 
   getHTMLExpression() {
-    const render = new Render(this.characters.value as Character[]);
+    const render = new Render(
+      this.characters.value as Character[],
+      this.previousAnswer.value
+    );
     return render.HTMLRender();
   }
 
@@ -140,7 +148,10 @@ export class Expression {
   }
 
   calculate() {
-    const render = new Render(this.characters.value as Character[]);
+    const render = new Render(
+      this.characters.value as Character[],
+      this.previousAnswer.value
+    );
     const expression = render.calculateRender();
 
     try {

@@ -108,7 +108,7 @@ const numPadRows: KeyboardRow[] = [
       { symbol: '8' },
       { symbol: '9' },
       {
-        symbol: 'DEL', textColor: 'text-black', backgroundColor: 'bg-amber-500'
+        symbol: '⌫', textColor: 'text-black', backgroundColor: 'bg-amber-500'
         , callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.removeLeftSideCharacter(); }
       },
       {
@@ -141,17 +141,14 @@ const numPadRows: KeyboardRow[] = [
     buttons: [
       { symbol: '0' },
       { symbol: '.' },
+      { symbol: 'Ans' },
       { symbol: '%' },
-      { symbol: 'Ans', textColor: 'text-black', backgroundColor: "bg-amber-500" },
-
       {
         symbol: '=', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, characterFactory: CharacterFactory) => {
           expression.savePreviousAnswer();
-          const previousAnswer = expression.getPreviousAnswer();
-          Debug.info('Previous Answer:', previousAnswer.value);
-          const character = characterFactory.createCharacter(String(previousAnswer.value));
+          const character = characterFactory.createCharacter("Ans");
           expression.addCharacter(character);
-          Debug.info('Current Expression:', expression.getExpression());
+          // Debug.info('Current Expression:', expression.getExpression());
           expression.moveIndexLocationToEnd();
         }
       },
