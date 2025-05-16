@@ -5,9 +5,7 @@
       <div class="bg-gray-200/90 rounded-lg p-4 mb-2 h-40 flex flex-col justify-between">
         <div class="flex justify-between">
           <div class="text-xl font-medium">
-            <span class="inline-block" v-html="displayExpression">
-
-            </span>
+            <span class="inline-block" v-html="displayExpression" />
           </div>
         </div>
 
@@ -93,7 +91,7 @@ const numPadRows = [
       { symbol: '9' },
       {
         symbol: 'DEL', textColor: 'text-black', bgColor: 'bg-amber-500'
-        , callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.removeLastCharacter(); }
+        , callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.removeLeftSideCharacter(); }
       },
       {
         symbol: 'AC', textColor: 'text-black', bgColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.clear(); }
@@ -135,6 +133,7 @@ const numPadRows = [
           const character = characterFactory.createCharacter(String(previousAnswer.value));
           expression.addCharacter(character);
           Debug.info('Current Expression:', expression.getExpression());
+          expression.moveIndexLocationToEnd();
         }
       },
     ]
@@ -143,7 +142,7 @@ const numPadRows = [
 
 </script>
 
-<style scoped>
+<style>
 /* Custom CSS for fractions */
 .fraction {
   display: inline-block;
@@ -160,5 +159,21 @@ const numPadRows = [
 
 .numerator {
   border-bottom: 1px solid black;
+}
+
+@keyframes blink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+.animate-blink {
+  animation: blink 1s ease-in-out infinite;
 }
 </style>

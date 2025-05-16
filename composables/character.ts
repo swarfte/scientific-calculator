@@ -24,7 +24,7 @@ export class EmptyCharacter extends Character {
   }
 
   override export(): string {
-    return `<span class="empty"></span> \n`;
+    return `<span class="${this.getType()}"></span> \n`;
   }
 
   override getValue(): string {
@@ -38,7 +38,7 @@ export class NumberCharacter extends Character {
   }
 
   override export(): string {
-    return `<span class="number">${this.value}</span> \n`;
+    return `<span class="${this.getType()}">${this.value}</span> \n`;
   }
 
   override getValue(): string {
@@ -52,7 +52,7 @@ export class PointCharacter extends Character {
   }
 
   override export(): string {
-    return `<span class="point">${this.value}</span> \n`;
+    return `<span class="${this.getType()}">${this.value}</span> \n`;
   }
 
   override getValue(): string {
@@ -62,11 +62,11 @@ export class PointCharacter extends Character {
 
 export class OperationCharacter extends Character {
   constructor(private value: string) {
-    super("symbol", { value });
+    super("operation", { value });
   }
 
   override export(): string {
-    return `<span class="operation">${this.value}</span> \n`;
+    return `<span class="${this.getType()}">${this.value}</span> \n`;
   }
 
   override getValue(): string {
@@ -80,7 +80,7 @@ export class FractionCharacter extends Character {
   }
 
   override export(): string {
-    return `<span class="fraction">
+    return `<span class="${this.getType()}">
                 <span class="numerator">${this.numerator}</span>
                 <span class="denominator">${this.denominator}</span>
             </span> \n`;
@@ -104,7 +104,7 @@ export class ExecutionCharacter extends Character {
   }
 
   override export(): string {
-    return `<span class="execution">${this.value}</span> \n`;
+    return `<span class="${this.getType()}">${this.value}</span> \n`;
   }
 
   override getValue(): string {
@@ -114,11 +114,13 @@ export class ExecutionCharacter extends Character {
 
 export class IndexCharacter extends Character {
   constructor() {
-    super("index", { symbol: "|" });
+    super("animate-blink", { symbol: "|" });
   }
 
   override export(): string {
-    return `<span class="index">${this.getRawData().symbol}</span> \n`;
+    return `<span class="${this.getType()}">${
+      this.getRawData().symbol
+    }</span> \n`;
   }
 
   override getValue(): string {
@@ -131,6 +133,7 @@ export class CharacterFactory {
   private numberCharacter = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
   private operationCharacter = ["+", "-", "×", "÷", "(", ")", "*", "/", "%"];
   private fractionCharacter = ["#"]; // 1#3 for 1/3
+  private indexCharacter = ["|"]; // for index
   private pointCharacter = ["."];
   private executionCharacter = ["=", "DEL", "AC", "Ans"]; // for execution
   private constructor() {}
@@ -147,10 +150,7 @@ export class CharacterFactory {
     character: string,
     executeFunction?: (expression: Expression) => void
   ): Character {
-    if (
-      this.numberCharacter.includes(character) ||
-      character.match(/^\d+(\.\d+)?$/)
-    ) {
+    if (!isNaN(parseFloat(character))) {
       return new NumberCharacter(parseInt(character));
     } else if (this.pointCharacter.includes(character)) {
       return new PointCharacter(character);
@@ -161,6 +161,8 @@ export class CharacterFactory {
         character,
         executeFunction as (expression: Expression) => void
       );
+    } else if (this.indexCharacter.includes(character)) {
+      return new IndexCharacter();
     }
     return new EmptyCharacter(); // Return empty character for unknown input
   }

@@ -16,7 +16,7 @@ export class Expression {
   private denominator = ref(1);
   private previousAnswer = ref(0);
   private indexLocation = ref(0);
-  private characters = ref([] as Character[]);
+  private characters = ref([new IndexCharacter()] as Character[]);
   private static instance: Expression = new Expression(); // Singleton instance
   private constructor() {}
 
@@ -45,14 +45,13 @@ export class Expression {
 
   savePreviousAnswer() {
     this.previousAnswer.value = this.result.value;
-    this.result.value = 0;
-    this.numerator.value = 0;
-    this.denominator.value = 1;
-    this.characters.value = [];
+    this.clear();
   }
 
   addCharacter(character: Character) {
-    this.characters.value.push(character);
+    // add the character as the left side of the index character
+    this.characters.value.splice(this.indexLocation.value, 0, character);
+    this.indexLocation.value++;
   }
 
   addNumber(number: number) {
@@ -78,6 +77,18 @@ export class Expression {
   getHTMLExpression() {
     const render = new Render(this.characters.value as Character[]);
     return render.HTMLRender();
+  }
+
+  moveIndexLocation(index: number) {
+    if (index >= 0 && index < this.characters.value.length) {
+      this.indexLocation.value = index;
+    } else {
+      Debug.warn("Index out of bounds:", index);
+    }
+  }
+
+  moveIndexLocationToEnd() {
+    this.indexLocation.value = this.characters.value.length - 1;
   }
 
   calculate() {
@@ -111,8 +122,14 @@ export class Expression {
     this.denominator.value = 1;
   }
 
-  removeLastCharacter() {
-    this.characters.value.pop();
+  removeLeftSideCharacter() {
+    // remove the left side character of the index character
+    if (this.indexLocation.value > 0) {
+      this.characters.value.splice(this.indexLocation.value - 1, 1);
+      this.indexLocation.value--;
+    } else {
+      Debug.warn("Index out of bounds:", this.indexLocation.value);
+    }
     this.calculate();
   }
 
@@ -120,7 +137,7 @@ export class Expression {
     if (index >= 0 && index < this.characters.value.length) {
       this.characters.value.splice(index, 1);
     } else {
-      console.error("Index out of bounds:", index);
+      Debug.warn("Index out of bounds:", index);
     }
   }
 }
