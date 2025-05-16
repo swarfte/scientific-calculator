@@ -3,6 +3,7 @@ import {
   NumberCharacter,
   OperationCharacter,
   FractionCharacter,
+  IndexCharacter,
 } from "@composables/character";
 import { evaluate } from "mathjs";
 import { ref } from "vue";
@@ -10,11 +11,12 @@ import { Render } from "@composables/render";
 import { Debug } from "@composables/debug";
 
 export class Expression {
-  private characters = ref([] as Character[]);
   private result = ref(0);
   private numerator = ref(0);
   private denominator = ref(1);
   private previousAnswer = ref(0);
+  private indexLocation = ref(0);
+  private characters = ref([] as Character[]);
   private static instance: Expression = new Expression(); // Singleton instance
   private constructor() {}
 
@@ -35,6 +37,10 @@ export class Expression {
 
   getPreviousAnswer() {
     return this.previousAnswer;
+  }
+
+  getIndexLocation() {
+    return this.indexLocation;
   }
 
   savePreviousAnswer() {
@@ -98,7 +104,8 @@ export class Expression {
     return this.characters;
   }
   clear() {
-    this.characters.value = [];
+    this.indexLocation.value = 0;
+    this.characters.value = [new IndexCharacter()];
     this.result.value = 0;
     this.numerator.value = 0;
     this.denominator.value = 1;
