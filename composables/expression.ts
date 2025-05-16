@@ -87,8 +87,56 @@ export class Expression {
     }
   }
 
+  moveIndexLocationToStart() {
+    // remove the index character from the expression by the index location
+    this.characters.value.splice(this.indexLocation.value, 1);
+    // add the index character to the start of the expression
+    this.characters.value.unshift(new IndexCharacter());
+    // set the index location to the start of the expression
+    this.indexLocation.value = 0;
+  }
+
   moveIndexLocationToEnd() {
+    // remove the index character from the expression by the index location
+    this.characters.value.splice(this.indexLocation.value, 1);
+    // add the index character to the end of the expression
+    this.characters.value.push(new IndexCharacter());
+    // set the index location to the end of the expression
     this.indexLocation.value = this.characters.value.length - 1;
+  }
+
+  moveIndexLocationToLeft() {
+    if (this.indexLocation.value > 0) {
+      // remove the index character from the expression by the index location
+      this.characters.value.splice(this.indexLocation.value, 1);
+      // add the index character to the left of the expression
+      this.characters.value.splice(
+        this.indexLocation.value - 1,
+        0,
+        new IndexCharacter()
+      );
+      // set the index location to the left of the expression
+      this.indexLocation.value--;
+    } else {
+      Debug.warn("Index out of bounds:", this.indexLocation.value);
+    }
+  }
+
+  moveIndexLocationToRight() {
+    if (this.indexLocation.value < this.characters.value.length) {
+      // remove the index character from the expression by the index location
+      this.characters.value.splice(this.indexLocation.value, 1);
+      // add the index character to the right of the expression
+      this.characters.value.splice(
+        this.indexLocation.value + 1,
+        0,
+        new IndexCharacter()
+      );
+      // set the index location to the right of the expression
+      this.indexLocation.value++;
+    } else {
+      Debug.warn("Index out of bounds:", this.indexLocation.value);
+    }
   }
 
   calculate() {
