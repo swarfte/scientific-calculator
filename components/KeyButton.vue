@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts" setup>
-import { CharacterFactory, Expression } from '#imports';
+import { CharacterFactory, Expression, Debug } from '#imports';
 
 const prop = defineProps({
   symbol: {
@@ -40,7 +40,7 @@ function defaultAction(expression: Expression, characterFactory: CharacterFactor
   const character = characterFactory.createCharacter(prop.symbol);
   expression.addCharacter(character);
   expression.calculate();
-  console.log(`Default action for ${prop.symbol}`);
+  Debug.info("Default action :", character.getValue());
 }
 
 </script>

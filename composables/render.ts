@@ -1,4 +1,4 @@
-import { Character, CharacterFactory } from "@composables/character";
+import { type Character, CharacterFactory } from "@composables/character";
 
 export class Render {
   constructor(private characters: Character[]) {}

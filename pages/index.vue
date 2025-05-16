@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { definePageMeta, Expression } from '#imports'
+import { definePageMeta, Expression, Debug } from '#imports'
 const expression = Expression.getInstance();
 
 
@@ -131,10 +131,10 @@ const numPadRows = [
         symbol: '=', textColor: 'text-black', bgColor: 'bg-amber-500', callback: (expression: Expression, characterFactory: CharacterFactory) => {
           expression.savePreviousAnswer();
           const previousAnswer = expression.getPreviousAnswer();
-          console.log('Previous Answer:', previousAnswer);
+          Debug.info('Previous Answer:', previousAnswer.value);
           const character = characterFactory.createCharacter(String(previousAnswer.value));
           expression.addCharacter(character);
-          console.log('Current Expression:', expression.getExpression());
+          Debug.info('Current Expression:', expression.getExpression());
         }
       },
     ]

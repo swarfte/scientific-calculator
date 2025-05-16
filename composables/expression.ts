@@ -7,6 +7,7 @@ import {
 import { evaluate } from "mathjs";
 import { ref } from "vue";
 import { Render } from "@composables/render";
+import { Debug } from "@composables/debug";
 
 export class Expression {
   private characters = ref([] as Character[]);
@@ -88,7 +89,7 @@ export class Expression {
       this.denominator.value = fraction.d;
       this.previousAnswer.value = this.result.value;
     } catch (error) {
-      console.warn("Error evaluating expression:", error);
+      Debug.warn("Error evaluating expression:", error);
       this.result.value = this.previousAnswer.value;
     }
   }
