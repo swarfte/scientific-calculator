@@ -78,7 +78,7 @@ const numPadRows: KeyboardRow[] = [
       { symbol: '√x' },
       { symbol: 'x^2' },
       { symbol: 'x^y' },
-      { symbol: 'log' },
+      { symbol: 'Log' },
     ],
   },
   {
@@ -86,9 +86,9 @@ const numPadRows: KeyboardRow[] = [
     buttons: [
       { symbol: '(−)' },
       { symbol: '°\'' },
-      { symbol: 'sin' },
-      { symbol: 'cos' },
-      { symbol: 'tan' },
+      { symbol: 'Sin' },
+      { symbol: 'Cos' },
+      { symbol: 'Tan' },
     ],
   },
   {
