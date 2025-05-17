@@ -57,7 +57,7 @@ export class Expression {
   }
 
   addNumber(number: number) {
-    const character = new NumberCharacter(number);
+    const character = new NumberCharacter(String(number));
     this.characters.value.push(character);
   }
 

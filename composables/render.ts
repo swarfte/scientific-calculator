@@ -40,6 +40,7 @@ export class Render {
     const rawExpression = this.characters.map((character) => {
       return character.getValue();
     });
+    Debug.log("rawExpression : ", rawExpression);
     const joinedExpression = rawExpression.join("");
     const characterFactory = CharacterFactory.getInstance();
     const operationCharacter = characterFactory

@@ -33,7 +33,7 @@ export class EmptyCharacter extends Character {
 }
 
 export class NumberCharacter extends Character {
-  constructor(private value: number) {
+  constructor(private value: string) {
     super("number", { value });
   }
 
@@ -42,7 +42,7 @@ export class NumberCharacter extends Character {
   }
 
   override getValue(): string {
-    return this.value.toString();
+    return this.value;
   }
 }
 
@@ -151,7 +151,7 @@ export class CharacterFactory {
     executeFunction?: (expression: Expression) => void
   ): Character {
     if (!isNaN(parseFloat(character))) {
-      return new NumberCharacter(parseInt(character));
+      return new NumberCharacter(character);
     } else if (this.pointCharacter.includes(character)) {
       return new PointCharacter(character);
     } else if (this.operationCharacter.includes(character)) {

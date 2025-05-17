@@ -17,7 +17,8 @@ export default defineNuxtConfig({
   },
   pwa: {
     devOptions: {
-      enabled: true,
+      // only enable in production mode
+      enabled: process.env.NODE_ENV === "production",
       type: "module",
       suppressWarnings: false,
       navigateFallback: "/",
