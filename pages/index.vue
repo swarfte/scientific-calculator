@@ -13,7 +13,7 @@
         <div class="h-8 flex">
           <div class="flex-grow">
             <div class="text-right">
-              <span v-if="floatResult && Number(floatResult) / Number(fractionResult.numerator.value) !== 1"
+              <span v-if="!isNaN(floatResult) && fractionResult.denominator.value != 1 && displayExpression.length > 38"
                 class="fraction text-xl">
                 <span class="numerator">{{ fractionResult.numerator }} </span>
                 <span class="denominator">{{ fractionResult.denominator }}
@@ -24,7 +24,7 @@
         </div>
 
         <!-- floating answer -->
-        <div v-if="floatResult" class="text-right text-lg" if>
+        <div v-if="!isNaN(floatResult) && displayExpression.length > 38" class="text-right text-lg" if>
           = {{ floatResult }}
         </div>
       </div>
@@ -45,7 +45,7 @@ const expression = Expression.getInstance();
 
 
 const displayExpression = computed(() => {
-  return expression.getHTMLExpression()
+  return expression.getHTMLExpression() // the minimum length of the expression is 38
 })
 
 const floatResult = expression.getResult()
