@@ -49,7 +49,6 @@ export default defineNuxtConfig({
       short_name: "CalcS",
       description: "A smart calculator that include AI features",
       theme_color: "#ffffff",
-      display: "standalone", // single page app
       screenshots: [
         {
           src: "screenshot/desktop_2560x1251.png",
