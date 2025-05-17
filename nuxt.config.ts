@@ -17,6 +17,7 @@ export default defineNuxtConfig({
   },
   pwa: {
     devOptions: {
+      // only enable in production mode
       enabled: true,
       type: "module",
       suppressWarnings: false,
@@ -33,7 +34,7 @@ export default defineNuxtConfig({
           options: {
             cacheName: "main-cache",
             expiration: {
-              maxEntries: 1000, // maximum number of entries in the cache
+              maxEntries: 100, // maximum number of entries in the cache
               maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
             },
           },
