@@ -1,75 +1,121 @@
-# Nuxt Minimal Starter
+# Smart Calculator
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+A modern, scientific calculator web app built with [Nuxt 3](https://nuxt.com/), featuring advanced calculation capabilities, persistent state, and offline support via PWA. Designed for both casual and scientific use, with a clean UI and AI-powered features.
 
-## Setup
+## Features
 
-Make sure to install dependencies:
+- Scientific calculator with advanced math functions (powered by [mathjs](https://mathjs.org/))
+- Progressive Web App (PWA): installable, offline support, and fast loading
+- Responsive, mobile-friendly UI with [Nuxt UI](https://ui.nuxt.com/)
+- Modular codebase with composables and stores
+- ESLint integration for code quality
+- Modern development workflow (TypeScript, hot reload, etc.)
+
+## Getting Started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18+ recommended)
+- [npm](https://www.npmjs.com/), [pnpm](https://pnpm.io/), [yarn](https://yarnpkg.com/), or [bun](https://bun.sh/)
+
+### Installation
+
+Clone the repository and install dependencies:
 
 ```bash
-# npm
+# Clone the repo
+git clone https://github.com/your-username/scientific-calculator.git
+cd scientific-calculator
+
+# Install dependencies (choose one)
 npm install
-
-# pnpm
+# or
 pnpm install
-
-# yarn
+# or
 yarn install
-
-# bun
+# or
 bun install
 ```
 
-## Development Server
+### Development
 
-Start the development server on `http://localhost:3000`:
+Start the development server:
 
 ```bash
 # npm
 npm run dev
-
 # pnpm
 pnpm dev
-
 # yarn
 yarn dev
-
 # bun
 bun run dev
 ```
 
-## Production
+Visit [http://localhost:3000](http://localhost:3000) in your browser.
 
-Build the application for production:
+### Build for Production
+
+Build the application:
 
 ```bash
 # npm
 npm run build
-
 # pnpm
 pnpm build
-
 # yarn
 yarn build
-
 # bun
 bun run build
 ```
 
-Locally preview production build:
+Preview the production build locally:
 
 ```bash
 # npm
 npm run preview
-
 # pnpm
 pnpm preview
-
 # yarn
 yarn preview
-
 # bun
 bun run preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+### Deployment
+
+You can deploy the generated `.output` directory to any static hosting or Node.js server. See the [Nuxt deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more details.
+
+## Project Structure
+
+- `components/` — Vue components (e.g., calculator buttons)
+- `composables/` — Reusable logic (math, state, etc.)
+- `pages/` — Application pages (main calculator UI)
+- `assets/` — CSS and static assets
+- `public/` — Public files (PWA icons, etc.)
+- `nuxt.config.ts` — Nuxt configuration (PWA, modules, aliases)
+
+## PWA Features
+
+- Installable on desktop and mobile
+- Offline support (cache-first strategy)
+- Auto-updates via service worker
+- Custom icons and manifest
+
+## Contributing
+
+Contributions are welcome! Please open issues or pull requests for bug fixes, features, or improvements.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/YourFeature`)
+3. Commit your changes (`npm run commit` for conventional commits)
+4. Push to the branch (`git push origin feature/YourFeature`)
+5. Open a pull request
+
+## License
+
+[MIT](LICENSE)
+
+---
+
+> Built with ❤️ using Nuxt 3, and modern web technologies.

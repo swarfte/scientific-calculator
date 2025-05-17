@@ -150,6 +150,7 @@ const numPadRows: KeyboardRow[] = [
           expression.addCharacter(character);
           // Debug.info('Current Expression:', expression.getExpression());
           expression.moveIndexLocationToEnd();
+          expression.calculate(); // for display the answer value
         }
       },
     ]
