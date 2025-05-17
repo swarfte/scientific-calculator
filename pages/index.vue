@@ -13,7 +13,7 @@
         <div class="h-8 flex">
           <div class="flex-grow">
             <div class="text-right">
-              <span v-if="floatResult && Number(floatResult) / Number(fractionResult.numerator.value) !== 1"
+              <span v-if="!isNaN(floatResult) && fractionResult.denominator.value != 1 && displayExpression.length > 38"
                 class="fraction text-xl">
                 <span class="numerator">{{ fractionResult.numerator }} </span>
                 <span class="denominator">{{ fractionResult.denominator }}
@@ -24,7 +24,7 @@
         </div>
 
         <!-- floating answer -->
-        <div v-if="floatResult" class="text-right text-lg" if>
+        <div v-if="!isNaN(floatResult) && displayExpression.length > 38" class="text-right text-lg" if>
           = {{ floatResult }}
         </div>
       </div>
@@ -32,7 +32,7 @@
       <div v-for="row in numPadRows" :key="row.id" class="grid grid-cols-5 gap-2 mb-2">
         <KeyButton v-for="btn in row.buttons" :key="btn.symbol" :symbol="btn.symbol"
           :text-color="btn.textColor || 'text-white'" :background-color="btn.backgroundColor || 'bg-gray-700'"
-          size="text-lg" :callback="btn.callback" />
+          :trigger-key="btn.triggerKey" size="text-lg" :callback="btn.callback" />
       </div>
 
     </div>
@@ -45,7 +45,7 @@ const expression = Expression.getInstance();
 
 
 const displayExpression = computed(() => {
-  return expression.getHTMLExpression()
+  return expression.getHTMLExpression() // the minimum length of the expression is 38
 })
 
 const floatResult = expression.getResult()
@@ -108,7 +108,7 @@ const numPadRows: KeyboardRow[] = [
       { symbol: '8' },
       { symbol: '9' },
       {
-        symbol: '⌫', textColor: 'text-black', backgroundColor: 'bg-amber-500'
+        symbol: '⌫', triggerKey: "backspace", textColor: 'text-black', backgroundColor: 'bg-amber-500'
         , callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.removeLeftSideCharacter(); }
       },
       {
@@ -122,8 +122,8 @@ const numPadRows: KeyboardRow[] = [
       { symbol: '4' },
       { symbol: '5' },
       { symbol: '6' },
-      { symbol: '×' },
-      { symbol: '÷' },
+      { symbol: '×', triggerKey: '*' },
+      { symbol: '÷', triggerKey: '/' },
     ],
   },
   {
@@ -144,7 +144,7 @@ const numPadRows: KeyboardRow[] = [
       { symbol: 'Ans' },
       { symbol: '%' },
       {
-        symbol: '=', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, characterFactory: CharacterFactory) => {
+        symbol: '=', triggerKey: "Enter", textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, characterFactory: CharacterFactory) => {
           expression.savePreviousAnswer();
           const character = characterFactory.createCharacter("Ans");
           expression.addCharacter(character);

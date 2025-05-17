@@ -16,6 +16,7 @@ export class Expression {
   private denominator = ref(1);
   private previousAnswer = ref(0);
   private indexLocation = ref(0);
+  private tempAnswer = ref(0);
   private characters = ref([new IndexCharacter()] as Character[]);
   private static instance: Expression = new Expression(); // Singleton instance
   private constructor() {}
@@ -41,6 +42,10 @@ export class Expression {
 
   getIndexLocation() {
     return this.indexLocation;
+  }
+
+  getTempAnswer() {
+    return this.tempAnswer;
   }
 
   savePreviousAnswer() {
@@ -163,10 +168,10 @@ export class Expression {
       const fraction = evaluate(`fraction(${result})`);
       this.numerator.value = fraction.n;
       this.denominator.value = fraction.d;
-      this.previousAnswer.value = this.result.value;
+      this.tempAnswer.value = result;
     } catch (error) {
       Debug.warn("Error evaluating expression:", error);
-      this.result.value = this.previousAnswer.value;
+      this.result.value = this.tempAnswer.value; // use the previous step answer
     }
   }
 
