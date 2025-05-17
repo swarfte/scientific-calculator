@@ -6,6 +6,7 @@ export interface KeyboardRow {
 export interface KeyboardButton {
   symbol: string;
   textColor?: string;
+  triggerKey?: string;
   backgroundColor?: string;
   callback?: (
     expression: Expression,

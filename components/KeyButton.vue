@@ -4,8 +4,7 @@
     prop.backgroundColor,
     prop.textColor,
     'rounded-md h-12 flex items-center justify-center w-full transition-transform active:scale-90'
-  ]"
-    @click="prop.callback ? prop.callback(expression, characterFactory) : defaultAction(expression, characterFactory)">
+  ]" @click="handleClick()">
     <span :class="prop.size">{{ prop.symbol }}</span>
   </button>
 </template>
@@ -33,17 +32,65 @@ const prop = defineProps({
   callback: {
     type: Function,
     required: false,
+  },
+  triggerKey: {
+    type: String,
+    default: null
   }
 });
 
-const characterFactory = CharacterFactory.getInstance();
-const expression = Expression.getInstance();
+const pressed = ref(false)
+const characterFactory = CharacterFactory.getInstance()
+const expression = Expression.getInstance()
 
-function defaultAction(expression: Expression, characterFactory: CharacterFactory) {
-  const character = characterFactory.createCharacter(prop.symbol);
-  expression.addCharacter(character);
-  expression.calculate();
-  //Debug.info("Default action :", character.getValue());
+function handleClick(): void {
+  if (prop.callback) {
+    prop.callback(expression, characterFactory)
+  } else {
+    defaultAction(expression, characterFactory)
+  }
 }
+
+function defaultAction(expression: Expression, characterFactory: CharacterFactory): void {
+  const character = characterFactory.createCharacter(prop.symbol)
+  expression.addCharacter(character)
+  expression.calculate()
+}
+
+// Handle keyboard input
+function handleKeydown(event: KeyboardEvent): void {
+  // Prevent interference with input components
+  if (
+    event.target instanceof HTMLInputElement ||
+    event.target instanceof HTMLTextAreaElement
+  ) {
+    return
+  }
+
+  const key = event.key.toLowerCase()
+
+  const executeKey = prop.triggerKey ? prop.triggerKey.toLowerCase() : prop.symbol.toLowerCase()
+
+  if (key === executeKey) {
+    event.preventDefault()
+
+    // Trigger action and animation
+    handleClick()
+
+    pressed.value = true
+    setTimeout(() => {
+      pressed.value = false
+    }, 100) // Match transition duration
+  }
+}
+
+// Lifecycle management
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
 
 </script>

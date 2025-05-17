@@ -32,7 +32,7 @@
       <div v-for="row in numPadRows" :key="row.id" class="grid grid-cols-5 gap-2 mb-2">
         <KeyButton v-for="btn in row.buttons" :key="btn.symbol" :symbol="btn.symbol"
           :text-color="btn.textColor || 'text-white'" :background-color="btn.backgroundColor || 'bg-gray-700'"
-          size="text-lg" :callback="btn.callback" />
+          :trigger-key="btn.triggerKey" size="text-lg" :callback="btn.callback" />
       </div>
 
     </div>
@@ -108,7 +108,7 @@ const numPadRows: KeyboardRow[] = [
       { symbol: '8' },
       { symbol: '9' },
       {
-        symbol: '⌫', textColor: 'text-black', backgroundColor: 'bg-amber-500'
+        symbol: '⌫', triggerKey: "backspace", textColor: 'text-black', backgroundColor: 'bg-amber-500'
         , callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.removeLeftSideCharacter(); }
       },
       {
@@ -122,8 +122,8 @@ const numPadRows: KeyboardRow[] = [
       { symbol: '4' },
       { symbol: '5' },
       { symbol: '6' },
-      { symbol: '×' },
-      { symbol: '÷' },
+      { symbol: '×', triggerKey: '*' },
+      { symbol: '÷', triggerKey: '/' },
     ],
   },
   {
@@ -144,7 +144,7 @@ const numPadRows: KeyboardRow[] = [
       { symbol: 'Ans' },
       { symbol: '%' },
       {
-        symbol: '=', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, characterFactory: CharacterFactory) => {
+        symbol: '=', triggerKey: "Enter", textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, characterFactory: CharacterFactory) => {
           expression.savePreviousAnswer();
           const character = characterFactory.createCharacter("Ans");
           expression.addCharacter(character);

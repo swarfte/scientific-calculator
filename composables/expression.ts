@@ -163,7 +163,6 @@ export class Expression {
       const fraction = evaluate(`fraction(${result})`);
       this.numerator.value = fraction.n;
       this.denominator.value = fraction.d;
-      this.previousAnswer.value = this.result.value;
     } catch (error) {
       Debug.warn("Error evaluating expression:", error);
       this.result.value = this.previousAnswer.value;
