@@ -1,7 +1,10 @@
 <!-- KeyButton.vue -->
 <template>
-  <button :class="[prop.backgroundColor, prop.textColor, 'rounded-md h-12 flex items-center justify-center w-full']"
-    class="boxed"
+  <button :class="[
+    prop.backgroundColor,
+    prop.textColor,
+    'rounded-md h-12 flex items-center justify-center w-full transition-transform active:scale-90'
+  ]"
     @click="prop.callback ? prop.callback(expression, characterFactory) : defaultAction(expression, characterFactory)">
     <span :class="prop.size">{{ prop.symbol }}</span>
   </button>
