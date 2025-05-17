@@ -130,7 +130,6 @@ export class IndexCharacter extends Character {
 
 export class CharacterFactory {
   private static instance: CharacterFactory = new CharacterFactory();
-  private numberCharacter = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
   private operationCharacter = ["+", "-", "×", "÷", "(", ")", "*", "/", "%"];
   private fractionCharacter = ["#"]; // 1#3 for 1/3
   private indexCharacter = ["|"]; // for index
