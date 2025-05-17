@@ -19,7 +19,7 @@ export default defineNuxtConfig({
     devOptions: {
       enabled: true,
       type: "module",
-      suppressWarnings: true,
+      suppressWarnings: false,
       navigateFallback: "/",
     },
     injectRegister: "auto",
@@ -33,7 +33,7 @@ export default defineNuxtConfig({
           options: {
             cacheName: "main-cache",
             expiration: {
-              maxEntries: 100, // maximum number of entries in the cache
+              maxEntries: 1000, // maximum number of entries in the cache
               maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
             },
           },
@@ -50,15 +50,51 @@ export default defineNuxtConfig({
       description: "A smart calculator that include AI features",
       theme_color: "#ffffff",
       display: "standalone", // single page app
+      screenshots: [
+        {
+          src: "screenshot/desktop_2560x1251.png",
+          sizes: "2560x1251",
+          type: "image/png",
+          form_factor: "wide",
+          label: "Application",
+        },
+        {
+          src: "screenshot/mobile_709x1087.png",
+          sizes: "709x1087",
+          type: "image/png",
+          form_factor: "narrow",
+          label: "Application",
+        },
+      ],
       icons: [
         // inside the public folder
         {
-          src: "pwa-192x192.png",
+          src: "icons/icon_48x48.png",
+          sizes: "48x48",
+          type: "image/png",
+        },
+        {
+          src: "icons/icon_72x72.png",
+          sizes: "72x72",
+          type: "image/png",
+        },
+        {
+          src: "icons/icon_96x96.png",
+          sizes: "96x96",
+          type: "image/png",
+        },
+        {
+          src: "icons/icon_144x144.png",
+          sizes: "144x144",
+          type: "image/png",
+        },
+        {
+          src: "icons/icon_192x192.png",
           sizes: "192x192",
           type: "image/png",
         },
         {
-          src: "pwa-512x512.png",
+          src: "icons/icon_512x512.png",
           sizes: "512x512",
           type: "image/png",
         },
@@ -71,8 +107,6 @@ export default defineNuxtConfig({
     "@nuxt/icon",
     "@nuxt/scripts",
     "@nuxt/ui",
-    "@pinia/nuxt",
-    "pinia-plugin-persistedstate/nuxt",
     "@vueuse/nuxt",
     "@vite-pwa/nuxt",
   ],
