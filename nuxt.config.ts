@@ -26,6 +26,7 @@ export default defineNuxtConfig({
     injectRegister: "auto",
     registerType: "autoUpdate",
     workbox: {
+      navigateFallback: "/",
       globPatterns: ["**/*.{js,css,html,png,jpg,svg,woff2,ttf}"],
       runtimeCaching: [
         {
@@ -49,7 +50,8 @@ export default defineNuxtConfig({
       name: "Smart Calculator",
       short_name: "CalcS",
       description: "A smart calculator that include AI features",
-      theme_color: "#ffffff",
+      theme_color: "#F8F8F8",
+      display: "standalone",
       screenshots: [
         {
           src: "screenshot/desktop_2560x1251.png",
