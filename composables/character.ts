@@ -130,7 +130,23 @@ export class IndexCharacter extends Character {
 
 export class CharacterFactory {
   private static instance: CharacterFactory = new CharacterFactory();
-  private operationCharacter = ["+", "-", "×", "÷", "(", ")", "*", "/", "%"];
+  private operationCharacter = [
+    "+",
+    "-",
+    "×",
+    "÷",
+    "(",
+    ")",
+    "*",
+    "/",
+    "%",
+    "sin(",
+    "cos(",
+    "tan(",
+    "asin(",
+    "acos(",
+    "atan(",
+  ];
   private fractionCharacter = ["#"]; // 1#3 for 1/3
   private indexCharacter = ["|"]; // for index
   private pointCharacter = ["."];

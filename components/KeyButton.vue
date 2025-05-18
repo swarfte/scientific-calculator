@@ -4,7 +4,7 @@
     prop.backgroundColor,
     prop.textColor,
     'rounded-md h-12 flex items-center justify-center w-full transition duration-100',
-    { 'scale-90 opacity-75': pressed }
+    { 'scale-95 opacity-80': pressed }
   ]" @click="handleInteraction()">
     <span :class="prop.size">{{ prop.symbol }}</span>
   </button>
@@ -37,6 +37,10 @@ const prop = defineProps({
   triggerKey: {
     type: String,
     default: null
+  },
+  expressionSymbol: {
+    type: String,
+    default: null
   }
 });
 
@@ -53,7 +57,8 @@ function performAction(): void {
 }
 
 function defaultAction(expression: Expression, characterFactory: CharacterFactory): void {
-  const character = characterFactory.createCharacter(prop.symbol)
+  const symbol = prop.expressionSymbol ? prop.expressionSymbol : prop.symbol
+  const character = characterFactory.createCharacter(symbol)
   expression.addCharacter(character)
   expression.calculate()
 }
@@ -63,7 +68,7 @@ function handleInteraction(): void {
   performAction();
 
   // 2. Trigger the visual effect manually using the 'pressed' ref
-  //    Only set if not already in the pressed state (e.g., holding down key or rapid clicks)
+  //    Only set if not already in the pressed state (me.g., holding down key or rapid clicks)
   if (!pressed.value) {
     pressed.value = true;
     setTimeout(() => {
@@ -71,8 +76,6 @@ function handleInteraction(): void {
     }, 100); // Match the transition duration added in classes (duration-100)
   }
 }
-
-
 
 // Handle keyboard input
 function handleKeydown(event: KeyboardEvent): void {

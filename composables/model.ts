@@ -7,6 +7,7 @@ export interface KeyboardButton {
   symbol: string;
   textColor?: string;
   triggerKey?: string;
+  expressionSymbol?: string;
   backgroundColor?: string;
   callback?: (
     expression: Expression,
