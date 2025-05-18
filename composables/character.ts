@@ -143,6 +143,9 @@ export class CharacterFactory {
     "sin(",
     "cos(",
     "tan(",
+    "asin(",
+    "acos(",
+    "atan(",
   ];
   private fractionCharacter = ["#"]; // 1#3 for 1/3
   private indexCharacter = ["|"]; // for index

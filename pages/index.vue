@@ -41,8 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { definePageMeta, Expression, Debug, type KeyboardRow } from '#imports'
-
+import { definePageMeta, Expression, Debug, type KeyboardRow, mathjs } from '#imports'
 const expression = Expression.getInstance();
 
 const displayExpression = computed(() => {
@@ -66,7 +65,7 @@ const numPadRows: KeyboardRow[] = [
     buttons: [
       {
         symbol: 'AI', backgroundColor: 'bg-green-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => {
-
+          Debug.info("asin(0.5) = ", mathjs.evaluate('asin(0.5)'));
         }
       },
       { symbol: '△', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.moveIndexLocationToStart() } },
@@ -80,16 +79,16 @@ const numPadRows: KeyboardRow[] = [
     buttons: [
       { symbol: 'x/y' },
       { symbol: '√x' },
-      { symbol: 'x^2' },
-      { symbol: 'x^y' },
-      { symbol: 'Log' },
+      { symbol: 'aSin', expressionSymbol: 'asin(' },
+      { symbol: 'aCos', expressionSymbol: 'acos(' },
+      { symbol: 'aTan', expressionSymbol: 'atan(' },
     ],
   },
   {
     id: 5,
     buttons: [
-      { symbol: '(−)' },
-      { symbol: '°\'' },
+      { symbol: 'x^2' },
+      { symbol: 'x^y' },
       { symbol: 'Sin', triggerKey: 's', expressionSymbol: 'sin(' },
       { symbol: 'Cos', triggerKey: 'c', expressionSymbol: 'cos(' },
       { symbol: 'Tan', triggerKey: 't', expressionSymbol: 'tan(' },
@@ -99,7 +98,7 @@ const numPadRows: KeyboardRow[] = [
     id: 4,
     buttons: [
       { symbol: 'RCL' },
-      { symbol: 'ENG' },
+      { symbol: 'Log' },
       { symbol: '(' },
       { symbol: ')' },
       { symbol: 'S⇔D' },

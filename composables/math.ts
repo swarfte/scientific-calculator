@@ -1,4 +1,4 @@
-import { create, all, type Matrix } from "mathjs";
+import { create, all, type Matrix, type Complex } from "mathjs";
 
 // Create a mathjs instance (recommended over using the global mathjs instance)
 export const mathjs = create(all, {});
@@ -41,6 +41,62 @@ fnsInputConvert.forEach((name: string) => {
       return mathjs.map(x, mapFn) as number[] | Matrix;
     },
   });
+});
+
+const fnsOutputConvert: string[] = [
+  "asin",
+  "acos",
+  "atan",
+  "atan2",
+  "acot",
+  "acsc",
+  "asec",
+];
+fnsOutputConvert.forEach((name: string) => {
+  // Get the original mathjs function
+  // @ts-ignore
+  const originalFn: any = mathjs[name];
+
+  // Define the wrapper function for number inputs
+  const wrapperFnNumber: (...args: number[]) => number | Complex = function (
+    ...args: number[]
+  ): number | Complex {
+    // Call the original function (which returns result in radians)
+    // Need to handle atan2 which takes two arguments
+    const resultInRadians: any = originalFn(...args); // result can be number or Complex
+
+    // If the result is a number, convert it from radians to the current angleMode
+    if (typeof resultInRadians === "number") {
+      switch (angleMode.value) {
+        case "deg":
+          return (resultInRadians / Math.PI) * 180; // radians to degrees
+        case "grad":
+          return (resultInRadians / Math.PI) * 200; // radians to gradians
+        default: // 'rad'
+          return resultInRadians; // result is already in radians
+      }
+    }
+
+    // If the result is not a number (e.g., Complex number from asin(2)), return it directly
+    return resultInRadians as number | Complex; // Return the original result
+  };
+
+  // Create a typed-function wrapper to handle different input types
+  if (name === "atan2") {
+    replacements[name] = mathjs.typed(name, {
+      "number, number": wrapperFnNumber, // atan2 specifically takes two numbers
+      // Add other required atan2 signatures if needed (e.g., Array, Matrix)
+    });
+  } else {
+    replacements[name] = mathjs.typed(name, {
+      number: wrapperFnNumber,
+      // Handle Array or Matrix input
+      "Array | Matrix": function (x: number[] | Matrix): number[] | Matrix {
+        const mapFn = (value: any) => wrapperFnNumber(value); // wrapperFnNumber only takes angle value here
+        return mathjs.map(x, mapFn) as number[] | Matrix;
+      },
+    });
+  }
 });
 
 // After defining all wrappers, import them into the mathjs instance,

@@ -162,6 +162,7 @@ export class Expression {
     try {
       // Use mathjs fraction functionality
       const rawResult = mathjs.evaluate(expression);
+      // using 14 digits precision to avoid floating point error
       this.result.value = Number(mathjs.format(rawResult, { precision: 14 }));
 
       // Convert to fraction (mathjs has a built-in function for this)
