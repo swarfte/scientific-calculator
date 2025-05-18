@@ -1,4 +1,4 @@
-import { create, all } from "mathjs";
+import { create, all, type Matrix } from "mathjs";
 
 // Create a mathjs instance (recommended over using the global mathjs instance)
 export const mathjs = create(all, {});
@@ -23,9 +23,9 @@ fnsInputConvert.forEach((name: string) => {
     // Convert input 'x' from the current angleMode to radians before calling the original function
     switch (angleMode.value) {
       case "deg":
-        return originalFn((x / 360) * 2 * Math.PI);
+        return originalFn((x / 180) * Math.PI);
       case "grad":
-        return originalFn((x / 400) * 2 * Math.PI);
+        return originalFn((x / 200) * Math.PI);
       default: // 'rad'
         return originalFn(x);
     }
@@ -35,6 +35,11 @@ fnsInputConvert.forEach((name: string) => {
   replacements[name] = mathjs.typed(name, {
     number: wrapperFnNumber, // Handle single number input
     // Handle Array or Matrix input by mapping the number wrapper over the elements
+    "Array | Matrix": function (x: number[] | Matrix): number[] | Matrix {
+      // Ensure the mapped function has access to angleMode.value and originalFn
+      const mapFn = (value: any) => wrapperFnNumber(value);
+      return mathjs.map(x, mapFn) as number[] | Matrix;
+    },
   });
 });
 

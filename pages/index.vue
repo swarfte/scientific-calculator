@@ -42,7 +42,6 @@
 
 <script setup lang="ts">
 import { definePageMeta, Expression, Debug, type KeyboardRow } from '#imports'
-import { evaluate } from "mathjs";
 
 const expression = Expression.getInstance();
 
@@ -67,7 +66,7 @@ const numPadRows: KeyboardRow[] = [
     buttons: [
       {
         symbol: 'AI', backgroundColor: 'bg-green-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => {
-          Debug.info("test result :", evaluate(`sin(45)`));
+
         }
       },
       { symbol: '△', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.moveIndexLocationToStart() } },

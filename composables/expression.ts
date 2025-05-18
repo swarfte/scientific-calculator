@@ -161,14 +161,14 @@ export class Expression {
 
     try {
       // Use mathjs fraction functionality
-      const result = mathjs.evaluate(expression);
-      this.result.value = result;
+      const rawResult = mathjs.evaluate(expression);
+      this.result.value = Number(mathjs.format(rawResult, { precision: 14 }));
 
       // Convert to fraction (mathjs has a built-in function for this)
-      const fraction = mathjs.evaluate(`fraction(${result})`);
+      const fraction = mathjs.evaluate(`fraction(${rawResult})`);
       this.numerator.value = fraction.n;
       this.denominator.value = fraction.d;
-      this.tempAnswer.value = result;
+      this.tempAnswer.value = rawResult;
     } catch (error) {
       Debug.warn("Error evaluating expression:", error);
       this.result.value = this.tempAnswer.value; // use the previous step answer
