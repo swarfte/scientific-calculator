@@ -18,7 +18,7 @@ export default defineNuxtConfig({
   pwa: {
     devOptions: {
       // only enable in production mode
-      enabled: process.env.NODE_ENV === "production",
+      enabled: true,
       type: "module",
       suppressWarnings: false,
       navigateFallback: "/",
@@ -30,7 +30,7 @@ export default defineNuxtConfig({
       globPatterns: ["**/*.{js,css,html,png,jpg,svg,woff2,ttf}"],
       runtimeCaching: [
         {
-          urlPattern: ({ url }) => url.pathname.startsWith("/"),
+          urlPattern: /^.*$/, // 匹配所有 URL
           handler: "CacheFirst", // offlineFirst
           options: {
             cacheName: "main-cache",
@@ -51,6 +51,7 @@ export default defineNuxtConfig({
       short_name: "CalcS",
       description: "A smart calculator that include AI features",
       theme_color: "#F8F8F8",
+      background_color: "#F8F8F8",
       display: "standalone",
       screenshots: [
         {
