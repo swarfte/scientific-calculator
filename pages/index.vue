@@ -32,7 +32,8 @@
       <div v-for="row in numPadRows" :key="row.id" class="grid grid-cols-5 gap-2 mb-2">
         <KeyButton v-for="btn in row.buttons" :key="btn.symbol" :symbol="btn.symbol"
           :text-color="btn.textColor || 'text-white'" :background-color="btn.backgroundColor || 'bg-gray-700'"
-          :trigger-key="btn.triggerKey" size="text-lg" :callback="btn.callback" />
+          :trigger-key="btn.triggerKey" size="text-lg" :callback="btn.callback"
+          :expression-symbol="btn.expressionSymbol" />
       </div>
 
     </div>
@@ -41,15 +42,15 @@
 
 <script setup lang="ts">
 import { definePageMeta, Expression, Debug, type KeyboardRow } from '#imports'
-const expression = Expression.getInstance();
+import { evaluate } from "mathjs";
 
+const expression = Expression.getInstance();
 
 const displayExpression = computed(() => {
   return expression.getHTMLExpression() // the minimum length of the expression is 38
 })
 
 const floatResult = expression.getResult()
-
 
 const fractionResult = {
   numerator: expression.getNumerator(),
@@ -64,7 +65,11 @@ const numPadRows: KeyboardRow[] = [
   {
     id: 7,
     buttons: [
-      { symbol: 'AI', backgroundColor: 'bg-green-500' },
+      {
+        symbol: 'AI', backgroundColor: 'bg-green-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => {
+          Debug.info("test result :", evaluate(`sin(45)`));
+        }
+      },
       { symbol: '△', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.moveIndexLocationToStart() } },
       { symbol: '▽', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.moveIndexLocationToEnd() } },
       { symbol: '◁', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.moveIndexLocationToLeft() } },
@@ -86,9 +91,9 @@ const numPadRows: KeyboardRow[] = [
     buttons: [
       { symbol: '(−)' },
       { symbol: '°\'' },
-      { symbol: 'Sin' },
-      { symbol: 'Cos' },
-      { symbol: 'Tan' },
+      { symbol: 'Sin', triggerKey: 's', expressionSymbol: 'sin(' },
+      { symbol: 'Cos', triggerKey: 'c', expressionSymbol: 'cos(' },
+      { symbol: 'Tan', triggerKey: 't', expressionSymbol: 'tan(' },
     ],
   },
   {
@@ -141,12 +146,13 @@ const numPadRows: KeyboardRow[] = [
     buttons: [
       { symbol: '0' },
       { symbol: '.' },
-      { symbol: 'Ans' },
+      { symbol: 'Ans', triggerKey: "tab" },
       { symbol: '%' },
       {
         symbol: '=', triggerKey: "Enter", textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, characterFactory: CharacterFactory) => {
           expression.savePreviousAnswer();
-          const character = characterFactory.createCharacter("Ans");
+          const previousAnswer = expression.getPreviousAnswer();
+          const character = characterFactory.createCharacter(String(previousAnswer.value));
           expression.addCharacter(character);
           // Debug.info('Current Expression:', expression.getExpression());
           expression.moveIndexLocationToEnd();

@@ -18,6 +18,8 @@ export class Render {
       return character.getValue();
     });
 
+    Debug.log("rawExpression : ", rawExpression);
+
     // replace the symbols with their corresponding values
     for (const character of rawExpression) {
       if (character in mappingList) {
