@@ -5,7 +5,7 @@ import {
   FractionCharacter,
   IndexCharacter,
 } from "@composables/character";
-import { evaluate } from "mathjs";
+import { mathjs } from "@composables/math";
 import { ref } from "vue";
 import { Render } from "@composables/render";
 import { Debug } from "@composables/debug";
@@ -161,11 +161,11 @@ export class Expression {
 
     try {
       // Use mathjs fraction functionality
-      const result = evaluate(expression);
+      const result = mathjs.evaluate(expression);
       this.result.value = result;
 
       // Convert to fraction (mathjs has a built-in function for this)
-      const fraction = evaluate(`fraction(${result})`);
+      const fraction = mathjs.evaluate(`fraction(${result})`);
       this.numerator.value = fraction.n;
       this.denominator.value = fraction.d;
       this.tempAnswer.value = result;
@@ -195,13 +195,5 @@ export class Expression {
       Debug.warn("Index out of bounds:", this.indexLocation.value);
     }
     this.calculate();
-  }
-
-  removeCharacterAtIndex(index: number) {
-    if (index >= 0 && index < this.characters.value.length) {
-      this.characters.value.splice(index, 1);
-    } else {
-      Debug.warn("Index out of bounds:", index);
-    }
   }
 }

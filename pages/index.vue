@@ -117,7 +117,7 @@ const numPadRows: KeyboardRow[] = [
         , callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.removeLeftSideCharacter(); }
       },
       {
-        symbol: 'AC', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.clear(); }
+        symbol: 'AC', triggerKey: "\\", textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.clear(); }
       },
     ],
   },
