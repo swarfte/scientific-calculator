@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { definePageMeta, Expression, Debug, Keyboard, KeyboardRow, keyboardDictionary } from '#imports'
+import { definePageMeta, Expression, Debug, Keyboard, KeyboardRow, buttons } from '#imports'
 definePageMeta({
   colorMode: 'light',
 })
@@ -71,74 +71,74 @@ keyboardPanel.value.setKeyboardRow(
   [
     new KeyboardRow(
       [
-        keyboardDictionary["Shift"],
-        keyboardDictionary["△"],
-        keyboardDictionary["▽"],
-        keyboardDictionary["◁"],
-        keyboardDictionary["▷"]
+        buttons["Shift"],
+        buttons["△"],
+        buttons["▽"],
+        buttons["◁"],
+        buttons["▷"]
       ]
     ),
     new KeyboardRow(
       [
-        keyboardDictionary["x/y"],
-        keyboardDictionary["√x"],
-        keyboardDictionary["aSin"],
-        keyboardDictionary["aCos"],
-        keyboardDictionary["aTan"]
+        buttons["x/y"],
+        buttons["√x"],
+        buttons["aSin"],
+        buttons["aCos"],
+        buttons["aTan"]
       ]
     ),
     new KeyboardRow(
       [
-        keyboardDictionary["x^2"],
-        keyboardDictionary["x^y"],
-        keyboardDictionary["Sin"],
-        keyboardDictionary["Cos"],
-        keyboardDictionary["Tan"]
+        buttons["x^2"],
+        buttons["x^y"],
+        buttons["Sin"],
+        buttons["Cos"],
+        buttons["Tan"]
       ]
     ),
     new KeyboardRow(
       [
-        keyboardDictionary["RCL"],
-        keyboardDictionary["Log"],
-        keyboardDictionary["("],
-        keyboardDictionary[")"],
-        keyboardDictionary["S⇔D"]
+        buttons["RCL"],
+        buttons["Log"],
+        buttons["("],
+        buttons[")"],
+        buttons["S⇔D"]
       ]
     ),
     new KeyboardRow(
       [
-        keyboardDictionary["7"],
-        keyboardDictionary["8"],
-        keyboardDictionary["9"],
-        keyboardDictionary["⌫"],
-        keyboardDictionary["AC"]
+        buttons["7"],
+        buttons["8"],
+        buttons["9"],
+        buttons["⌫"],
+        buttons["AC"]
       ]
     ),
     new KeyboardRow(
       [
-        keyboardDictionary["4"],
-        keyboardDictionary["5"],
-        keyboardDictionary["6"],
-        keyboardDictionary["×"],
-        keyboardDictionary["÷"]
+        buttons["4"],
+        buttons["5"],
+        buttons["6"],
+        buttons["×"],
+        buttons["÷"]
       ]
     ),
     new KeyboardRow(
       [
-        keyboardDictionary["1"],
-        keyboardDictionary["2"],
-        keyboardDictionary["3"],
-        keyboardDictionary["+"],
-        keyboardDictionary["-"]
+        buttons["1"],
+        buttons["2"],
+        buttons["3"],
+        buttons["+"],
+        buttons["-"]
       ]
     ),
     new KeyboardRow(
       [
-        keyboardDictionary["0"],
-        keyboardDictionary["."],
-        keyboardDictionary["Ans"],
-        keyboardDictionary["%"],
-        keyboardDictionary["="]
+        buttons["0"],
+        buttons["."],
+        buttons["Ans"],
+        buttons["%"],
+        buttons["="]
       ]
     ),
   ]

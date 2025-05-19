@@ -114,7 +114,7 @@ export interface KeyboardDictionary {
 }
 
 // the implementation of the keyboard button
-export const keyboardDictionary: KeyboardDictionary = {
+export const buttons: KeyboardDictionary = {
   "0": new KeyboardButton({ symbol: "0" }),
   ".": new KeyboardButton({ symbol: "." }),
   Ans: new KeyboardButton({ symbol: "Ans", triggerKey: "tab" }),
