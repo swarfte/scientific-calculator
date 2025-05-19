@@ -41,7 +41,7 @@ const prop = defineProps({
   expressionSymbol: {
     type: String,
     default: null
-  }
+  },
 });
 
 const pressed = ref(false)

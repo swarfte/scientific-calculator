@@ -28,12 +28,17 @@
           = {{ floatResult }}
         </div>
       </div>
+
+      <!-- <KeyButton :symbol="demoKey.getSymbol()" :text-color="demoKey.getTextColor() || 'text-white'"
+        :background-color="demoKey.getBackgroundColor() || 'bg-gray-700'" :trigger-key="demoKey.getTriggerKey()"
+        size="text-lg" :callback="demoKey.callback" :expression-symbol="demoKey.getExpressionSymbol()" /> -->
+
       <!-- Keyboard -->
-      <div v-for="row in numPadRows" :key="row.id" class="grid grid-cols-5 gap-2 mb-2">
-        <KeyButton v-for="btn in row.buttons" :key="btn.symbol" :symbol="btn.symbol"
-          :text-color="btn.textColor || 'text-white'" :background-color="btn.backgroundColor || 'bg-gray-700'"
-          :trigger-key="btn.triggerKey" size="text-lg" :callback="btn.callback"
-          :expression-symbol="btn.expressionSymbol" />
+      <div v-for="row in keyboardPanel.getKeyboardRow()" :key="row.getId()" class="grid grid-cols-5 gap-2 mb-2">
+        <KeyButton v-for="btn in row.getKeyboardButtons()" :key="btn.getSymbol()" :symbol="btn.getSymbol()"
+          :text-color="btn.getTextColor() || 'text-white'" :background-color="btn.getBackgroundColor() || 'bg-gray-700'"
+          :trigger-key="btn.getTriggerKey()" size="text-lg" :callback="btn.callback"
+          :expression-symbol="btn.getExpressionSymbol()" />
       </div>
 
     </div>
@@ -41,7 +46,13 @@
 </template>
 
 <script setup lang="ts">
-import { definePageMeta, Expression, Debug, type KeyboardRow, mathjs } from '#imports'
+import { definePageMeta, Expression, Debug, Keyboard, KeyboardRow, keyboardDictionary } from '#imports'
+definePageMeta({
+  colorMode: 'light',
+})
+
+
+
 const expression = Expression.getInstance();
 
 const displayExpression = computed(() => {
@@ -55,112 +66,83 @@ const fractionResult = {
   denominator: expression.getDenominator()
 }
 
-definePageMeta({
-  colorMode: 'light',
-})
-
-const numPadRows: KeyboardRow[] = [
-  {
-    id: 7,
-    buttons: [
-      {
-        symbol: 'AI', backgroundColor: 'bg-green-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => {
-          Debug.info("asin(0.5) = ", mathjs.evaluate('asin(0.5)'));
-        }
-      },
-      { symbol: '△', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.moveIndexLocationToStart() } },
-      { symbol: '▽', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.moveIndexLocationToEnd() } },
-      { symbol: '◁', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.moveIndexLocationToLeft() } },
-      { symbol: '▷', textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.moveIndexLocationToRight() } },
-    ],
-  },
-  {
-    id: 6,
-    buttons: [
-      { symbol: 'x/y' },
-      { symbol: '√x' },
-      { symbol: 'aSin', expressionSymbol: 'asin(' },
-      { symbol: 'aCos', expressionSymbol: 'acos(' },
-      { symbol: 'aTan', expressionSymbol: 'atan(' },
-    ],
-  },
-  {
-    id: 5,
-    buttons: [
-      { symbol: 'x^2' },
-      { symbol: 'x^y' },
-      { symbol: 'Sin', triggerKey: 's', expressionSymbol: 'sin(' },
-      { symbol: 'Cos', triggerKey: 'c', expressionSymbol: 'cos(' },
-      { symbol: 'Tan', triggerKey: 't', expressionSymbol: 'tan(' },
-    ],
-  },
-  {
-    id: 4,
-    buttons: [
-      { symbol: 'RCL' },
-      { symbol: 'Log' },
-      { symbol: '(' },
-      { symbol: ')' },
-      { symbol: 'S⇔D' },
-    ],
-  },
-  {
-    id: 3,
-    buttons: [
-      { symbol: '7' },
-      { symbol: '8' },
-      { symbol: '9' },
-      {
-        symbol: '⌫', triggerKey: "backspace", textColor: 'text-black', backgroundColor: 'bg-amber-500'
-        , callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.removeLeftSideCharacter(); }
-      },
-      {
-        symbol: 'AC', triggerKey: "\\", textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => { expression.clear(); }
-      },
-    ],
-  },
-  {
-    id: 2,
-    buttons: [
-      { symbol: '4' },
-      { symbol: '5' },
-      { symbol: '6' },
-      { symbol: '×', triggerKey: '*' },
-      { symbol: '÷', triggerKey: '/' },
-    ],
-  },
-  {
-    id: 1,
-    buttons: [
-      { symbol: '1' },
-      { symbol: '2' },
-      { symbol: '3' },
-      { symbol: "+" },
-      { symbol: '-' },
-    ],
-  },
-  {
-    id: 0,
-    buttons: [
-      { symbol: '0' },
-      { symbol: '.' },
-      { symbol: 'Ans', triggerKey: "tab" },
-      { symbol: '%' },
-      {
-        symbol: '=', triggerKey: "Enter", textColor: 'text-black', backgroundColor: 'bg-amber-500', callback: (expression: Expression, characterFactory: CharacterFactory) => {
-          expression.savePreviousAnswer();
-          const previousAnswer = expression.getPreviousAnswer();
-          const character = characterFactory.createCharacter(String(previousAnswer.value));
-          expression.addCharacter(character);
-          // Debug.info('Current Expression:', expression.getExpression());
-          expression.moveIndexLocationToEnd();
-          expression.calculate(); // for display the answer value
-        }
-      },
-    ]
-  }
-]
-
+const keyboardPanel = ref(Keyboard.getInstance());
+keyboardPanel.value.setKeyboardRow(
+  [
+    new KeyboardRow(
+      [
+        keyboardDictionary["Shift"],
+        keyboardDictionary["△"],
+        keyboardDictionary["▽"],
+        keyboardDictionary["◁"],
+        keyboardDictionary["▷"]
+      ]
+    ),
+    new KeyboardRow(
+      [
+        keyboardDictionary["x/y"],
+        keyboardDictionary["√x"],
+        keyboardDictionary["aSin"],
+        keyboardDictionary["aCos"],
+        keyboardDictionary["aTan"]
+      ]
+    ),
+    new KeyboardRow(
+      [
+        keyboardDictionary["x^2"],
+        keyboardDictionary["x^y"],
+        keyboardDictionary["Sin"],
+        keyboardDictionary["Cos"],
+        keyboardDictionary["Tan"]
+      ]
+    ),
+    new KeyboardRow(
+      [
+        keyboardDictionary["RCL"],
+        keyboardDictionary["Log"],
+        keyboardDictionary["("],
+        keyboardDictionary[")"],
+        keyboardDictionary["S⇔D"]
+      ]
+    ),
+    new KeyboardRow(
+      [
+        keyboardDictionary["7"],
+        keyboardDictionary["8"],
+        keyboardDictionary["9"],
+        keyboardDictionary["⌫"],
+        keyboardDictionary["AC"]
+      ]
+    ),
+    new KeyboardRow(
+      [
+        keyboardDictionary["4"],
+        keyboardDictionary["5"],
+        keyboardDictionary["6"],
+        keyboardDictionary["×"],
+        keyboardDictionary["÷"]
+      ]
+    ),
+    new KeyboardRow(
+      [
+        keyboardDictionary["1"],
+        keyboardDictionary["2"],
+        keyboardDictionary["3"],
+        keyboardDictionary["+"],
+        keyboardDictionary["-"]
+      ]
+    ),
+    new KeyboardRow(
+      [
+        keyboardDictionary["0"],
+        keyboardDictionary["."],
+        keyboardDictionary["Ans"],
+        keyboardDictionary["%"],
+        keyboardDictionary["="]
+      ]
+    ),
+  ]
+)
 </script>
 
 <style>
