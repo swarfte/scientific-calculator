@@ -1,7 +1,7 @@
 export class Keyboard {
   private static instance: Keyboard = new Keyboard();
   private isShifted = ref(false);
-  private keyboardRow: KeyboardRow[] = [];
+  private keyboardRow = reactive<KeyboardRow[]>([]);
 
   private constructor() {}
   static getInstance() {
@@ -21,32 +21,40 @@ export class Keyboard {
   }
 
   getKeyboardRow() {
+    Debug.info("getKeyboardRow:", this.keyboardRow);
     return this.keyboardRow;
   }
 
   addKeyboardRow(keyboardRow: KeyboardRow) {
     this.keyboardRow.push(keyboardRow);
   }
+
+  setKeyboardRow(keyboardRow: KeyboardRow[]) {
+    this.keyboardRow = keyboardRow;
+  }
 }
 
-class KeyboardRow {
+export class KeyboardRow {
   private static counter = 0;
   private id: number;
-  constructor(private buttons: KeyboardButton[]) {
+  private keyboardButtons = [] as KeyboardButton[];
+  constructor(buttons: KeyboardButton[]) {
     this.id = KeyboardRow.counter;
     KeyboardRow.counter++;
+    this.keyboardButtons = buttons;
   }
 
   getId() {
     return this.id;
   }
 
-  getButtons() {
-    return this.buttons;
+  getKeyboardButtons() {
+    Debug.info("getButtons:", this.keyboardButtons);
+    return this.keyboardButtons;
   }
 }
 
-class KeyboardButton {
+export class KeyboardButton {
   private symbol: string;
   private textColor?: string;
   private triggerKey?: string;
@@ -101,12 +109,12 @@ class KeyboardButton {
   }
 }
 
-interface KeyboardDictionary {
+export interface KeyboardDictionary {
   [key: string]: KeyboardButton;
 }
 
 // the implementation of the keyboard button
-export const keyboardButtons: KeyboardDictionary = {
+export const keyboardDictionary: KeyboardDictionary = {
   "0": new KeyboardButton({ symbol: "0" }),
   ".": new KeyboardButton({ symbol: "." }),
   Ans: new KeyboardButton({ symbol: "Ans", triggerKey: "tab" }),
