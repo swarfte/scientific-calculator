@@ -9,6 +9,14 @@ export interface KeyboardButton {
   triggerKey?: string;
   expressionSymbol?: string;
   backgroundColor?: string;
+  shiftedSymbol?: string;
+  shiftedTextColor?: string;
+  shiftedBackgroundColor?: string;
+  shiftedExpressionSymbol?: string;
+  shiftedCallback?: (
+    expression: Expression,
+    characterFactory: CharacterFactory
+  ) => void;
   callback?: (
     expression: Expression,
     characterFactory: CharacterFactory

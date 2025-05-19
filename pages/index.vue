@@ -64,7 +64,7 @@ const numPadRows: KeyboardRow[] = [
     id: 7,
     buttons: [
       {
-        symbol: 'AI', backgroundColor: 'bg-green-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => {
+        symbol: 'Shift', backgroundColor: 'bg-green-500', callback: (expression: Expression, _characterFactory: CharacterFactory) => {
           Debug.info("asin(0.5) = ", mathjs.evaluate('asin(0.5)'));
         }
       },

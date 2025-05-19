@@ -41,7 +41,27 @@ const prop = defineProps({
   expressionSymbol: {
     type: String,
     default: null
-  }
+  },
+  shiftedSymbol: {
+    type: String,
+    default: null
+  },
+  shiftedTextColor: {
+    type: String,
+    default: 'text-white'
+  },
+  shiftedBackgroundColor: {
+    type: String,
+    default: 'bg-gray-700'
+  },
+  shiftedExpressionSymbol: {
+    type: String,
+    default: null
+  },
+  shiftedCallback: {
+    type: Function,
+    required: false,
+  },
 });
 
 const pressed = ref(false)
