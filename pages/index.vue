@@ -34,7 +34,7 @@
         size="text-lg" :callback="demoKey.callback" :expression-symbol="demoKey.getExpressionSymbol()" /> -->
 
       <!-- Keyboard -->
-      <div v-for="row in keyboardPanel.getKeyboardRow()" :key="row.getId()" class="grid grid-cols-5 gap-2 mb-2">
+      <div v-for="row in keyboardPanel.getCurrentLayout()" :key="row.getId()" class="grid grid-cols-5 gap-2 mb-2">
         <KeyButton v-for="btn in row.getKeyboardButtons()" :key="btn.getSymbol()" :symbol="btn.getSymbol()"
           :text-color="btn.getTextColor() || 'text-white'" :background-color="btn.getBackgroundColor() || 'bg-gray-700'"
           :trigger-key="btn.getTriggerKey()" size="text-lg" :callback="btn.callback"
@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { definePageMeta, Expression, Debug, Keyboard, KeyboardRow, keyboardDictionary } from '#imports'
+import { definePageMeta, Expression, Debug, Keyboard, KeyboardRow, buttons } from '#imports'
 definePageMeta({
   colorMode: 'light',
 })
@@ -66,83 +66,162 @@ const fractionResult = {
   denominator: expression.getDenominator()
 }
 
+const normalLayout = [
+  new KeyboardRow(
+    [
+      buttons["Shift"],
+      buttons["△"],
+      buttons["▽"],
+      buttons["◁"],
+      buttons["▷"]
+    ]
+  ),
+  new KeyboardRow(
+    [
+      buttons["x/y"],
+      buttons["√x"],
+      buttons["aSin"],
+      buttons["aCos"],
+      buttons["aTan"]
+    ]
+  ),
+  new KeyboardRow(
+    [
+      buttons["x^2"],
+      buttons["x^y"],
+      buttons["Sin"],
+      buttons["Cos"],
+      buttons["Tan"]
+    ]
+  ),
+  new KeyboardRow(
+    [
+      buttons["RCL"],
+      buttons["Log"],
+      buttons["("],
+      buttons[")"],
+      buttons["S⇔D"]
+    ]
+  ),
+  new KeyboardRow(
+    [
+      buttons["7"],
+      buttons["8"],
+      buttons["9"],
+      buttons["⌫"],
+      buttons["AC"]
+    ]
+  ),
+  new KeyboardRow(
+    [
+      buttons["4"],
+      buttons["5"],
+      buttons["6"],
+      buttons["×"],
+      buttons["÷"]
+    ]
+  ),
+  new KeyboardRow(
+    [
+      buttons["1"],
+      buttons["2"],
+      buttons["3"],
+      buttons["+"],
+      buttons["-"]
+    ]
+  ),
+  new KeyboardRow(
+    [
+      buttons["0"],
+      buttons["."],
+      buttons["Ans"],
+      buttons["%"],
+      buttons["="]
+    ]
+  ),
+]
+
+const shiftedLayout = [
+  new KeyboardRow(
+    [
+      buttons["Shift"],
+      buttons["△"],
+      buttons["▽"],
+      buttons["◁"],
+      buttons["▷"]
+    ]
+  ),
+  new KeyboardRow(
+    [
+      buttons["x/y"],
+      buttons["√x"],
+      buttons["aSin"],
+      buttons["aCos"],
+      buttons["aTan"]
+    ]
+  ),
+  new KeyboardRow(
+    [
+      buttons["x^2"],
+      buttons["x^y"],
+      buttons["Sin"],
+      buttons["Cos"],
+      buttons["Tan"]
+    ]
+  ),
+  new KeyboardRow(
+    [
+      buttons["RCL"],
+      buttons["Log"],
+      buttons["("],
+      buttons[")"],
+      buttons["S⇔D"]
+    ]
+  ),
+  new KeyboardRow(
+    [
+      buttons["7"],
+      buttons["8"],
+      buttons["9"],
+      buttons["⌫"],
+      buttons["AC"]
+    ]
+  ),
+  new KeyboardRow(
+    [
+      buttons["4"],
+      buttons["5"],
+      buttons["6"],
+      buttons["×"],
+      buttons["÷"]
+    ]
+  ),
+  new KeyboardRow(
+    [
+      buttons["11"],
+      buttons["22"],
+      buttons["33"],
+      buttons["+"],
+      buttons["-"]
+    ]
+  ),
+  new KeyboardRow(
+    [
+      buttons["0"],
+      buttons["."],
+      buttons["Ans"],
+      buttons["%"],
+      buttons["="]
+    ]
+  ),
+]
 const keyboardPanel = ref(Keyboard.getInstance());
-keyboardPanel.value.setKeyboardRow(
-  [
-    new KeyboardRow(
-      [
-        keyboardDictionary["Shift"],
-        keyboardDictionary["△"],
-        keyboardDictionary["▽"],
-        keyboardDictionary["◁"],
-        keyboardDictionary["▷"]
-      ]
-    ),
-    new KeyboardRow(
-      [
-        keyboardDictionary["x/y"],
-        keyboardDictionary["√x"],
-        keyboardDictionary["aSin"],
-        keyboardDictionary["aCos"],
-        keyboardDictionary["aTan"]
-      ]
-    ),
-    new KeyboardRow(
-      [
-        keyboardDictionary["x^2"],
-        keyboardDictionary["x^y"],
-        keyboardDictionary["Sin"],
-        keyboardDictionary["Cos"],
-        keyboardDictionary["Tan"]
-      ]
-    ),
-    new KeyboardRow(
-      [
-        keyboardDictionary["RCL"],
-        keyboardDictionary["Log"],
-        keyboardDictionary["("],
-        keyboardDictionary[")"],
-        keyboardDictionary["S⇔D"]
-      ]
-    ),
-    new KeyboardRow(
-      [
-        keyboardDictionary["7"],
-        keyboardDictionary["8"],
-        keyboardDictionary["9"],
-        keyboardDictionary["⌫"],
-        keyboardDictionary["AC"]
-      ]
-    ),
-    new KeyboardRow(
-      [
-        keyboardDictionary["4"],
-        keyboardDictionary["5"],
-        keyboardDictionary["6"],
-        keyboardDictionary["×"],
-        keyboardDictionary["÷"]
-      ]
-    ),
-    new KeyboardRow(
-      [
-        keyboardDictionary["1"],
-        keyboardDictionary["2"],
-        keyboardDictionary["3"],
-        keyboardDictionary["+"],
-        keyboardDictionary["-"]
-      ]
-    ),
-    new KeyboardRow(
-      [
-        keyboardDictionary["0"],
-        keyboardDictionary["."],
-        keyboardDictionary["Ans"],
-        keyboardDictionary["%"],
-        keyboardDictionary["="]
-      ]
-    ),
-  ]
-)
+keyboardPanel.value.setLayouts({
+  normal: normalLayout,
+  shifted: shiftedLayout
+});
+
+
 </script>
 
 <style>

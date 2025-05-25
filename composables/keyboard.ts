@@ -1,9 +1,17 @@
 export class Keyboard {
   private static instance: Keyboard = new Keyboard();
   private isShifted = ref(false);
-  private keyboardRow = reactive<KeyboardRow[]>([]);
 
-  private constructor() {}
+  private layouts = reactive({
+    normal: [] as KeyboardRow[],
+    shifted: [] as KeyboardRow[],
+  });
+
+  private currentLayout = reactive([] as KeyboardRow[]);
+
+  private constructor() {
+    this.currentLayout = this.layouts.normal;
+  }
   static getInstance() {
     return Keyboard.instance;
   }
@@ -18,19 +26,37 @@ export class Keyboard {
 
   toggleShift() {
     this.isShifted.value = !this.isShifted.value;
+    this.updateKeyboardRows();
   }
 
-  getKeyboardRow() {
-    Debug.info("getKeyboardRow:", this.keyboardRow);
-    return this.keyboardRow;
+  getLayouts() {
+    return this.layouts;
   }
 
-  addKeyboardRow(keyboardRow: KeyboardRow) {
-    this.keyboardRow.push(keyboardRow);
+  getCurrentLayout() {
+    return this.currentLayout;
   }
 
-  setKeyboardRow(keyboardRow: KeyboardRow[]) {
-    this.keyboardRow = keyboardRow;
+  setLayouts(layouts: { normal: KeyboardRow[]; shifted: KeyboardRow[] }) {
+    this.layouts = layouts;
+    this.updateKeyboardRows();
+  }
+
+  setNormalLayout(layout: KeyboardRow[]) {
+    this.layouts.normal = layout;
+  }
+
+  setShiftedLayout(layout: KeyboardRow[]) {
+    this.layouts.shifted = layout;
+  }
+
+  private updateKeyboardRows() {
+    const newLayout = this.isShifted.value
+      ? this.layouts.shifted
+      : this.layouts.normal;
+
+    // Notify Vue to update keyboard display
+    this.currentLayout.splice(0, this.currentLayout.length, ...newLayout);
   }
 }
 
@@ -49,7 +75,7 @@ export class KeyboardRow {
   }
 
   getKeyboardButtons() {
-    Debug.info("getButtons:", this.keyboardButtons);
+    //Debug.info("getButtons:", this.keyboardButtons);
     return this.keyboardButtons;
   }
 }
@@ -113,8 +139,10 @@ export interface KeyboardDictionary {
   [key: string]: KeyboardButton;
 }
 
+const keyboard = Keyboard.getInstance();
+
 // the implementation of the keyboard button
-export const keyboardDictionary: KeyboardDictionary = {
+export const buttons: KeyboardDictionary = {
   "0": new KeyboardButton({ symbol: "0" }),
   ".": new KeyboardButton({ symbol: "." }),
   Ans: new KeyboardButton({ symbol: "Ans", triggerKey: "tab" }),
@@ -197,8 +225,12 @@ export const keyboardDictionary: KeyboardDictionary = {
   Shift: new KeyboardButton({
     symbol: "Shift",
     backgroundColor: "bg-green-500",
-    callback: (expression: Expression, _characterFactory: CharacterFactory) => {
-      Debug.info("asin(0.5) = ", mathjs.evaluate("asin(0.5)"));
+    callback: (
+      _expression: Expression,
+      _characterFactory: CharacterFactory
+    ) => {
+      keyboard.toggleShift();
+      Debug.info("Shift toggled:", keyboard.getIsShifted().value);
     },
   }),
   "△": new KeyboardButton({

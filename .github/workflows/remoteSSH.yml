@@ -1,0 +1,54 @@
+name: Remote SSH Command
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: ssh remote deploy(via password)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: |
+            # to home directory
+            cd ~
+
+            # clone repository
+            git clone https://github.com/swarfte/scientific-calculator.git
+
+            # to the cloned directory
+            cd scientific-calculator
+
+            # update the repository
+            git pull origin main
+
+            # load nvm
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+
+            # using the default node version (V22)
+            nvm use default
+
+            # install dependencies
+            npm install
+
+            # build the project
+            npm run build
+
+            # stop pm2 if it is running
+            pm2 stop scientific-calculator || true
+
+            # using pm2 to run the project
+            pm2 start npm --name "scientific-calculator" -- run preview
+
+            # save the pm2 process list
+            pm2 save
+
+            # show pm2 process list
+            pm2 list
