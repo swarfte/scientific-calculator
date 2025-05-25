@@ -17,7 +17,7 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             # to home directory
-            cd ~
+            cd ~  
 
             # clone repository
             git clone https://github.com/swarfte/scientific-calculator.git
@@ -43,6 +43,9 @@ jobs:
 
             # stop pm2 if it is running
             pm2 stop scientific-calculator || true
+
+            # remove the old pm2 process
+            pm2 delete scientific-calculator || true
 
             # using pm2 to run the project
             pm2 start npm --name "scientific-calculator" -- run preview
