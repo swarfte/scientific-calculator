@@ -1,4 +1,4 @@
-# scientific_calculator
+# Scientific Calculator
 
 A new Flutter project.
 
