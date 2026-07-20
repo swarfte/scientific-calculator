@@ -1,6 +1,6 @@
 {
-    "name": "scientific_calculator",
-    "short_name": "scientific_calculator",
+    "name": "Scientific Calculator",
+    "short_name": "Scientific Calculator",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
