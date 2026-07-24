@@ -47,3 +47,5 @@ app.*.map.json
 
 # environment file
 .env
+
+.dart_tool/
