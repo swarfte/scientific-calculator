@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:scientific_calculator/views/home.dart';
 
 void main() {
   runApp(const MainApp());
@@ -12,7 +11,7 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       title: 'Scientific Calculator',
       theme: ThemeData(),
-      home: const HomePage(),
+      home: const Scaffold(body: Center(child: Text('Scientific Calculator'))),
     );
   }
 }
