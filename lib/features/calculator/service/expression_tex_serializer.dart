@@ -9,31 +9,29 @@ class ExpressionTexSerializer {
     FractionDraft? fractionDraft,
     bool showCursor = false,
   }) {
-    final mainTex = _createSafeTex(document.texExpression);
-
     if (fractionDraft == null) {
-      return _serializeMainExpression(mainTex, showCursor: showCursor);
+      return _serializeDocument(
+        document,
+        isActive: true,
+        showCursor: showCursor,
+      );
     }
 
-    final numeratorIsActive =
-        fractionDraft.activePart == FractionPart.numerator;
-
-    final denominatorIsActive =
-        fractionDraft.activePart == FractionPart.denominator;
-
-    final numeratorTex = _serializeFractionPart(
+    final numeratorTex = _serializeDocument(
       fractionDraft.numerator,
-      isActive: numeratorIsActive,
+      isActive: fractionDraft.activePart == FractionPart.numerator,
       showCursor: showCursor,
     );
 
-    final denominatorTex = _serializeFractionPart(
+    final denominatorTex = _serializeDocument(
       fractionDraft.denominator,
-      isActive: denominatorIsActive,
+      isActive: fractionDraft.activePart == FractionPart.denominator,
       showCursor: showCursor,
     );
 
     final fractionTex = '\\frac{$numeratorTex}{$denominatorTex}';
+
+    final mainTex = _createSafeTex(document.texExpression);
 
     if (mainTex.isEmpty) {
       return fractionTex;
@@ -42,34 +40,34 @@ class ExpressionTexSerializer {
     return '$mainTex$fractionTex';
   }
 
-  String _serializeMainExpression(String mainTex, {required bool showCursor}) {
-    final cursorTex = showCursor ? _visibleCursor : _hiddenCursor;
-
-    if (mainTex.isEmpty) {
-      return '$cursorTex$_minimumWidth';
-    }
-
-    return '$mainTex$cursorTex';
-  }
-
-  String _serializeFractionPart(
+  String _serializeDocument(
     ExpressionDocument document, {
     required bool isActive,
     required bool showCursor,
   }) {
-    final safeTex = _createSafeTex(document.texExpression);
+    var source = document.texExpression;
+
+    if (isActive) {
+      final cursor = showCursor ? _visibleCursor : _hiddenCursor;
+
+      final offset = document.texCursorOffset.clamp(0, source.length);
+
+      source = source.replaceRange(offset, offset, cursor);
+    }
+
+    final safeTex = _createSafeTex(source);
+
+    if (safeTex.isNotEmpty) {
+      return safeTex;
+    }
 
     if (!isActive) {
-      return safeTex.isEmpty ? _minimumWidth : safeTex;
+      return _minimumWidth;
     }
 
-    final cursorTex = showCursor ? _visibleCursor : _hiddenCursor;
-
-    if (safeTex.isEmpty) {
-      return '$cursorTex$_minimumWidth';
-    }
-
-    return '$safeTex$cursorTex';
+    return showCursor
+        ? '$_visibleCursor$_minimumWidth'
+        : '$_hiddenCursor$_minimumWidth';
   }
 
   String _createSafeTex(String source) {
@@ -87,19 +85,18 @@ class ExpressionTexSerializer {
         leftParenthesisCount - rightParenthesisCount;
 
     if (missingRightParentheses > 0) {
-      for (var index = 0; index < missingRightParentheses; index++) {
-        tex += r'\right)';
-      }
+      tex += List<String>.filled(missingRightParentheses, r'\right)').join();
     }
 
     final openingBraceCount = _countCharacter(tex, '{');
 
     final closingBraceCount = _countCharacter(tex, '}');
 
-    final missingClosingBraces = openingBraceCount - closingBraceCount;
-
-    if (missingClosingBraces > 0) {
-      tex += List<String>.filled(missingClosingBraces, '}').join();
+    if (openingBraceCount > closingBraceCount) {
+      tex += List<String>.filled(
+        openingBraceCount - closingBraceCount,
+        '}',
+      ).join();
     }
 
     return tex;

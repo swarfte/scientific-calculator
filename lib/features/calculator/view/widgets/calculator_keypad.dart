@@ -28,6 +28,8 @@ class CalculatorKeypad extends StatelessWidget {
     required this.onFraction,
     required this.onMoveUp,
     required this.onMoveDown,
+    required this.onMoveLeft,
+    required this.onMoveRight,
     super.key,
   });
 
@@ -55,6 +57,8 @@ class CalculatorKeypad extends StatelessWidget {
   final VoidCallback onFraction;
   final VoidCallback onMoveUp;
   final VoidCallback onMoveDown;
+  final VoidCallback onMoveLeft;
+  final VoidCallback onMoveRight;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +68,8 @@ class CalculatorKeypad extends StatelessWidget {
           _key('a/b', onFraction, CalculatorKeyStyle.function),
           _key('↑', onMoveUp, CalculatorKeyStyle.function),
           _key('↓', onMoveDown, CalculatorKeyStyle.function),
+          _key('←', onMoveLeft, CalculatorKeyStyle.function),
+          _key('→', onMoveRight, CalculatorKeyStyle.function),
         ]),
         _row([
           _key('sin', onSin, CalculatorKeyStyle.function),
@@ -73,7 +79,7 @@ class CalculatorKeypad extends StatelessWidget {
           _key('AC', onClear, CalculatorKeyStyle.destructive),
         ]),
         _row([
-          _key('log', onLog, CalculatorKeyStyle.function),
+          _key('log₁₀', onLog, CalculatorKeyStyle.function),
           _key('ln', onLn, CalculatorKeyStyle.function),
           _key('√', onSquareRoot, CalculatorKeyStyle.function),
           _key('x²', onSquare, CalculatorKeyStyle.function),

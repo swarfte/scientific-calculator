@@ -78,7 +78,7 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
   }
 
   void inputLog() {
-    _inputFunction(evaluationName: 'log', texName: r'\log');
+    _inputFunction(evaluationName: 'log', texName: r'\log_{10}');
   }
 
   void inputLn() {
@@ -207,6 +207,92 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
         evaluationName: evaluationName,
         texName: texName,
       ),
+    );
+  }
+
+  void moveCursorLeft() {
+    final draft = state.fractionDraft;
+
+    if (draft != null) {
+      final activeDocument = draft.activeDocument;
+
+      if (activeDocument.evaluationCursorOffset > 0) {
+        state = state.copyWith(
+          fractionDraft: draft.updateActiveDocument(
+            _editor.moveCursorLeft(activeDocument),
+          ),
+          hasEvaluated: false,
+          clearError: true,
+        );
+
+        return;
+      }
+
+      if (draft.activePart == FractionPart.denominator) {
+        final numeratorAtEnd = draft.numerator.copyWith(
+          evaluationCursorOffset: draft.numerator.evaluationExpression.length,
+          texCursorOffset: draft.numerator.texExpression.length,
+        );
+
+        state = state.copyWith(
+          fractionDraft: draft
+              .copyWith(numerator: numeratorAtEnd)
+              .moveToNumerator(),
+          hasEvaluated: false,
+          clearError: true,
+        );
+      }
+
+      return;
+    }
+
+    state = state.copyWith(
+      document: _editor.moveCursorLeft(state.document),
+      hasEvaluated: false,
+      clearError: true,
+    );
+  }
+
+  void moveCursorRight() {
+    final draft = state.fractionDraft;
+
+    if (draft != null) {
+      final activeDocument = draft.activeDocument;
+
+      if (!activeDocument.isEvaluationCursorAtEnd) {
+        state = state.copyWith(
+          fractionDraft: draft.updateActiveDocument(
+            _editor.moveCursorRight(activeDocument),
+          ),
+          hasEvaluated: false,
+          clearError: true,
+        );
+
+        return;
+      }
+
+      if (draft.activePart == FractionPart.numerator) {
+        final denominatorAtStart = draft.denominator.copyWith(
+          evaluationCursorOffset: 0,
+          texCursorOffset: 0,
+        );
+
+        state = state.copyWith(
+          fractionDraft: draft
+              .copyWith(denominator: denominatorAtStart)
+              .moveToDenominator(),
+          hasEvaluated: false,
+          clearError: true,
+        );
+      }
+
+      return;
+    }
+
+    state = state.copyWith(
+      document: _editor.moveCursorRight(state.document),
+      hasEvaluated: false,
+      clearError: true,
     );
   }
 

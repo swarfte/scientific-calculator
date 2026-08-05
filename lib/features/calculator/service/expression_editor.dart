@@ -4,27 +4,23 @@ class ExpressionEditor {
   const ExpressionEditor();
 
   ExpressionDocument appendDigit(ExpressionDocument document, String digit) {
-    if (!_isDigit(digit)) {
+    if (!RegExp(r'^[0-9]$').hasMatch(digit)) {
       return document;
     }
 
+    final previousCharacter = _evaluationCharacterBeforeCursor(document);
+
     final needsMultiplication =
-        _endsWithNamedConstant(document.evaluationExpression) ||
-        document.evaluationExpression.endsWith(')');
+        previousCharacter == ')' || _namedConstantEndsAtCursor(document);
 
-    final evaluationPrefix = needsMultiplication ? '*' : '';
+    final evaluationText = '${needsMultiplication ? '*' : ''}$digit';
 
-    final texPrefix = needsMultiplication ? r'\times ' : '';
+    final texText = '${needsMultiplication ? r'\times ' : ''}$digit';
 
-    return document.copyWith(
-      evaluationExpression:
-          '${document.evaluationExpression}'
-          '$evaluationPrefix'
-          '$digit',
-      texExpression:
-          '${document.texExpression}'
-          '$texPrefix'
-          '$digit',
+    return _insertAtCursor(
+      document,
+      evaluationText: evaluationText,
+      texText: texText,
     );
   }
 
@@ -45,6 +41,40 @@ class ExpressionEditor {
     return document.copyWith(
       evaluationExpression: '${document.evaluationExpression}$value',
       texExpression: '${document.texExpression}$value',
+    );
+  }
+
+  ExpressionDocument _insertAtCursor(
+    ExpressionDocument document, {
+    required String evaluationText,
+    required String texText,
+    int? evaluationCursorAdvance,
+    int? texCursorAdvance,
+    int openParenthesesDelta = 0,
+  }) {
+    final evaluationOffset = document.evaluationCursorOffset;
+
+    final texOffset = document.texCursorOffset;
+
+    final nextEvaluation = document.evaluationExpression.replaceRange(
+      evaluationOffset,
+      evaluationOffset,
+      evaluationText,
+    );
+
+    final nextTex = document.texExpression.replaceRange(
+      texOffset,
+      texOffset,
+      texText,
+    );
+
+    return document.copyWith(
+      evaluationExpression: nextEvaluation,
+      texExpression: nextTex,
+      evaluationCursorOffset:
+          evaluationOffset + (evaluationCursorAdvance ?? evaluationText.length),
+      texCursorOffset: texOffset + (texCursorAdvance ?? texText.length),
+      openParentheses: document.openParentheses + openParenthesesDelta,
     );
   }
 
@@ -88,42 +118,200 @@ class ExpressionEditor {
   }
 
   ExpressionDocument appendOpenParenthesis(ExpressionDocument document) {
-    final needsMultiplication = _endsWithValue(document.evaluationExpression);
+    final needsMultiplication = _cursorFollowsValue(document);
 
-    final evaluationPrefix = needsMultiplication ? '*' : '';
-
-    final texPrefix = needsMultiplication ? r'\times ' : '';
-
-    return document.copyWith(
-      evaluationExpression:
-          '${document.evaluationExpression}'
-          '$evaluationPrefix'
-          '(',
-      texExpression:
-          '${document.texExpression}'
-          '$texPrefix'
+    return _insertAtCursor(
+      document,
+      evaluationText: '${needsMultiplication ? '*' : ''}(',
+      texText:
+          '${needsMultiplication ? r'\times ' : ''}'
           r'\left(',
-      openParentheses: document.openParentheses + 1,
+      openParenthesesDelta: 1,
     );
   }
 
   ExpressionDocument appendCloseParenthesis(ExpressionDocument document) {
-    final expression = document.evaluationExpression;
-
-    if (document.openParentheses <= 0 ||
-        document.isEmpty ||
-        expression.endsWith('(') ||
-        _endsWithOperator(expression)) {
+    if (document.openParentheses <= 0) {
       return document;
     }
 
-    return document.copyWith(
-      evaluationExpression: '${document.evaluationExpression})',
-      texExpression:
-          '${document.texExpression}'
-          r'\right)',
-      openParentheses: document.openParentheses - 1,
+    final previousCharacter = _evaluationCharacterBeforeCursor(document);
+
+    if (previousCharacter == null ||
+        previousCharacter == '(' ||
+        '+-*/^'.contains(previousCharacter)) {
+      return document;
+    }
+
+    return _insertAtCursor(
+      document,
+      evaluationText: ')',
+      texText: r'\right)',
+      openParenthesesDelta: -1,
     );
+  }
+
+  ExpressionDocument moveCursorLeft(ExpressionDocument document) {
+    if (document.evaluationCursorOffset <= 0 || document.texCursorOffset <= 0) {
+      return document;
+    }
+
+    final evaluationStep = _previousEvaluationTokenLength(document);
+
+    final texStep = _previousTexTokenLength(document);
+
+    return document.copyWith(
+      evaluationCursorOffset: document.evaluationCursorOffset - evaluationStep,
+      texCursorOffset: document.texCursorOffset - texStep,
+    );
+  }
+
+  ExpressionDocument moveCursorRight(ExpressionDocument document) {
+    if (document.evaluationCursorOffset >=
+            document.evaluationExpression.length ||
+        document.texCursorOffset >= document.texExpression.length) {
+      return document;
+    }
+
+    final evaluationStep = _nextEvaluationTokenLength(document);
+
+    final texStep = _nextTexTokenLength(document);
+
+    return document.copyWith(
+      evaluationCursorOffset: document.evaluationCursorOffset + evaluationStep,
+      texCursorOffset: document.texCursorOffset + texStep,
+    );
+  }
+
+  int _previousEvaluationTokenLength(ExpressionDocument document) {
+    final before = document.evaluationExpression.substring(
+      0,
+      document.evaluationCursorOffset,
+    );
+
+    const tokens = <String>[
+      'sqrt(',
+      'sin(',
+      'cos(',
+      'tan(',
+      'log(',
+      'ln(',
+      'pi',
+    ];
+
+    for (final token in tokens) {
+      if (before.endsWith(token)) {
+        return token.length;
+      }
+    }
+
+    return 1;
+  }
+
+  int _nextEvaluationTokenLength(ExpressionDocument document) {
+    final after = document.evaluationExpression.substring(
+      document.evaluationCursorOffset,
+    );
+
+    const tokens = <String>[
+      'sqrt(',
+      'sin(',
+      'cos(',
+      'tan(',
+      'log(',
+      'ln(',
+      'pi',
+    ];
+
+    for (final token in tokens) {
+      if (after.startsWith(token)) {
+        return token.length;
+      }
+    }
+
+    return 1;
+  }
+
+  int _previousTexTokenLength(ExpressionDocument document) {
+    final before = document.texExpression.substring(
+      0,
+      document.texCursorOffset,
+    );
+
+    const tokens = <String>[
+      r'\log_{10}\left(',
+      r'\sin\left(',
+      r'\cos\left(',
+      r'\tan\left(',
+      r'\ln\left(',
+      r'\sqrt{',
+      r'\times ',
+      r'\div ',
+      r'\left(',
+      r'\right)',
+      r'\pi',
+    ];
+
+    for (final token in tokens) {
+      if (before.endsWith(token)) {
+        return token.length;
+      }
+    }
+
+    return 1;
+  }
+
+  int _nextTexTokenLength(ExpressionDocument document) {
+    final after = document.texExpression.substring(document.texCursorOffset);
+
+    const tokens = <String>[
+      r'\log_{10}\left(',
+      r'\sin\left(',
+      r'\cos\left(',
+      r'\tan\left(',
+      r'\ln\left(',
+      r'\sqrt{',
+      r'\times ',
+      r'\div ',
+      r'\left(',
+      r'\right)',
+      r'\pi',
+    ];
+
+    for (final token in tokens) {
+      if (after.startsWith(token)) {
+        return token.length;
+      }
+    }
+
+    return 1;
+  }
+
+  String? _evaluationCharacterBeforeCursor(ExpressionDocument document) {
+    if (document.evaluationCursorOffset <= 0) {
+      return null;
+    }
+
+    return document.evaluationExpression[document.evaluationCursorOffset - 1];
+  }
+
+  bool _cursorFollowsValue(ExpressionDocument document) {
+    final previous = _evaluationCharacterBeforeCursor(document);
+
+    if (previous == null) {
+      return false;
+    }
+
+    return RegExp(r'[0-9a-zA-Z\)]').hasMatch(previous);
+  }
+
+  bool _namedConstantEndsAtCursor(ExpressionDocument document) {
+    final before = document.evaluationExpression.substring(
+      0,
+      document.evaluationCursorOffset,
+    );
+
+    return before.endsWith('pi') || before.endsWith('e');
   }
 
   ExpressionDocument appendFunction(
@@ -131,23 +319,23 @@ class ExpressionEditor {
     required String evaluationName,
     required String texName,
   }) {
-    final needsMultiplication = _endsWithValue(document.evaluationExpression);
+    final needsMultiplication = _cursorFollowsValue(document);
 
     final evaluationPrefix = needsMultiplication ? '*' : '';
 
     final texPrefix = needsMultiplication ? r'\times ' : '';
 
-    return document.copyWith(
-      evaluationExpression:
-          '${document.evaluationExpression}'
-          '$evaluationPrefix'
-          '$evaluationName(',
-      texExpression:
-          '${document.texExpression}'
-          '$texPrefix'
-          '$texName'
-          r'\left(',
-      openParentheses: document.openParentheses + 1,
+    final evaluationText = '$evaluationPrefix$evaluationName(';
+
+    final texText =
+        '$texPrefix$texName'
+        r'\left(';
+
+    return _insertAtCursor(
+      document,
+      evaluationText: evaluationText,
+      texText: texText,
+      openParenthesesDelta: 1,
     );
   }
 
@@ -188,22 +376,19 @@ class ExpressionEditor {
   }
 
   ExpressionDocument appendSquareRoot(ExpressionDocument document) {
-    final needsMultiplication = _endsWithValue(document.evaluationExpression);
+    final needsMultiplication = _cursorFollowsValue(document);
 
     final evaluationPrefix = needsMultiplication ? '*' : '';
 
     final texPrefix = needsMultiplication ? r'\times ' : '';
 
-    return document.copyWith(
-      evaluationExpression:
-          '${document.evaluationExpression}'
-          '$evaluationPrefix'
-          'sqrt(',
-      texExpression:
-          '${document.texExpression}'
+    return _insertAtCursor(
+      document,
+      evaluationText: '${evaluationPrefix}sqrt(',
+      texText:
           '$texPrefix'
           r'\sqrt{',
-      openParentheses: document.openParentheses + 1,
+      openParenthesesDelta: 1,
     );
   }
 
@@ -212,21 +397,16 @@ class ExpressionEditor {
     required String evaluationValue,
     required String texValue,
   }) {
-    final needsMultiplication = _endsWithValue(document.evaluationExpression);
+    final needsMultiplication = _cursorFollowsValue(document);
 
     final evaluationPrefix = needsMultiplication ? '*' : '';
 
     final texPrefix = needsMultiplication ? r'\times ' : '';
 
-    return document.copyWith(
-      evaluationExpression:
-          '${document.evaluationExpression}'
-          '$evaluationPrefix'
-          '$evaluationValue',
-      texExpression:
-          '${document.texExpression}'
-          '$texPrefix'
-          '$texValue',
+    return _insertAtCursor(
+      document,
+      evaluationText: '$evaluationPrefix$evaluationValue',
+      texText: '$texPrefix$texValue',
     );
   }
 
@@ -389,14 +569,6 @@ class ExpressionEditor {
     final lastCharacter = expression[expression.length - 1];
 
     return RegExp(r'[0-9a-zA-Z\)]').hasMatch(lastCharacter);
-  }
-
-  bool _endsWithNamedConstant(String expression) {
-    return expression.endsWith('pi') || expression.endsWith('e');
-  }
-
-  bool _isDigit(String value) {
-    return RegExp(r'^[0-9]$').hasMatch(value);
   }
 
   bool _hasUnclosedSquareRoot(String tex) {

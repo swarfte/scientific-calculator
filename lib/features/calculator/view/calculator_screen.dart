@@ -101,6 +101,8 @@ class CalculatorScreen extends ConsumerWidget {
                       onFraction: viewModel.startFraction,
                       onMoveUp: viewModel.moveFractionUp,
                       onMoveDown: viewModel.moveFractionDown,
+                      onMoveLeft: viewModel.moveCursorLeft,
+                      onMoveRight: viewModel.moveCursorRight,
                     ),
                   ),
                 ],
