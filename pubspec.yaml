@@ -43,6 +43,7 @@ dependencies:
   package_info_plus: ^10.2.1
   window_manager: ^0.5.2
   flutter_riverpod: ^3.4.2
+  screen_retriever: ^0.2.2
   
 
 dev_dependencies:
