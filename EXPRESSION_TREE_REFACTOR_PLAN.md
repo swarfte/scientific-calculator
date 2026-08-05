@@ -2,7 +2,7 @@
 
 > 專案：`scientific_calculator`  
 > 架構：Flutter + Riverpod + MVVM + Editable Expression Tree  
-> 文件狀態：Phase 1、Phase 2、Phase 3 已完成，其餘階段待實作  
+> 文件狀態：Phase 1、Phase 2、Phase 3、Phase 4 已完成，其餘階段待實作  
 > 最後更新：2026-08-06
 
 ---
@@ -137,7 +137,7 @@ Phase 6  Riverpod MVVM、UI 接駁及移除舊架構
 [x] Phase 1：Expression Tree Model
 [x] Phase 2：Tree Index 與結構化導航
 [x] Phase 3：Tree TeX Serializer 與游標顯示
-[ ] Phase 4：Tree Expression Editor
+[x] Phase 4：Tree Expression Editor
 [ ] Phase 5：Validator、Compiler、Evaluator 與 Engine
 [ ] Phase 6：Riverpod MVVM、UI 接駁及移除舊架構
 ```
@@ -736,7 +736,47 @@ sqrt(2)/sqrt(3)    -> \frac{\sqrt{2}}{\sqrt{3}}
 
 ## 狀態
 
-**待實作。**
+**已完成。**
+
+已建立以下結構（UI-free 平行層，未修改任何 production code，舊
+`expression_editor.dart` 仍保留至 Phase 6）：
+
+```text
+lib/features/calculator/model/expression/
+└── edit_result.dart
+lib/features/calculator/service/
+├── tree_rewriter.dart
+└── tree_expression_editor.dart
+test/features/calculator/service/
+└── tree_expression_editor_test.dart
+```
+
+### 實作重點
+
+- `TreeRewriter` 提供三個 immutable 基本操作：`replaceSequence` /
+  `replaceNode` / `removeNode`，沿 parent path 向上重建（透過
+  `TreeIndex.findParentOfSequence` 取得 owner chain）。由於每個 composite
+  node 的 `copyWith` 保留 ID（Phase 1 invariant），深層修改後其他 node ID
+  不變。
+- `TreeExpressionEditor` 提供 13 個方法（`insertDigit` /
+  `insertDecimalPoint` / `insertOperator` / `insertConstant` /
+  `insertFunction` / `insertFraction` / `insertSquareRoot` /
+  `insertNthRoot` / `insertPower` / `insertSquare` / `insertGroup` /
+  `backspace` / `clear`），每個 input/output 為 immutable
+  `TreeExpressionDocument`，方法直接回傳 document。
+- `EditResult` 為 Phase 6 ViewModel 提示用途預留（editor 內部目前直接回傳
+  document）。
+- Backspace 實作計劃的 8 條優先規則，含深層 unwrap（空 exponent 解除
+  PowerNode 保留 base、空 function/root/fraction 的降級或移除）。
+
+### 已知設計細節
+
+- 編輯深層 sequence 時，操作目標是 cursor 所在 sequence（`_commit` 以
+  `cursor.sequenceId` 為 target）；但 backspace 處理 owner 時操作的是
+  parent sequence，需直接呼叫 rewriter 而非 `_commit`（已在
+  `_unwrapPowerKeepBase` / `_removeOwnerAndCommit` 處理）。
+- 連續 operator 規則：`*` / `/` 後接 `-` 例外保留（允許 `3*-2`），其餘連續
+  operator 替換前一個。
 
 ## 目標
 
@@ -1613,22 +1653,22 @@ Responsive layout
 
 # 6. 目前下一步
 
-目前完成 Phase 1、Phase 2 與 Phase 3，因此下一步應是：
+目前完成 Phase 1、Phase 2、Phase 3 與 Phase 4，因此下一步應是：
 
 ```text
-Phase 4：Tree Expression Editor
+Phase 5：Validator、Compiler、Evaluator 與 Engine
 ```
 
 具體順序：
 
-1. 建立 `tree_expression_editor.dart` 與 `tree_rewriter.dart`，所有按鍵操作直接修改 Tree 並回傳 immutable document。
-2. 實作 immutable Tree 更新：`replaceSequence` / `replaceNode` / `removeNode`，沿 parent path 向上重建。
-3. 實作數字輸入合併、小數點守則、operator 替換、function / fraction / root / power 插入與提升。
-4. 實作 backspace 在每個 structural boundary 的行為（含深層 unwrap）。
-5. 建立 `edit_result.dart`（如有需要）。
-6. 為 editor 行為建立大量 unit tests（不能只靠手動測試）。
+1. 建立 `expression_validator.dart`，檢查 root 非空、sequence 不以 operator 結尾、function/fraction/root/power/group child 非空等，回傳 domain-level `ValidationFailure`。
+2. 建立 `validation_failure.dart`（type / message / nodeId 或 sequenceId）。
+3. 建立 `expression_compiler.dart`，直接把 Node 編譯成可執行表示（建議 Pratt parser 或 shunting-yard 處理 operator precedence），不再轉回字串。
+4. 建立 `expression_evaluator.dart`，處理 DEG/RAD、log10/ln 語義、domain error。
+5. 建立 `calculator_engine.dart`，協調 validation -> compilation -> evaluation -> formatting。
+6. 為 validator / compiler / engine 建立 unit tests，涵蓋計劃必測案例（operator precedence、groups、fractions、roots、powers、DEG/RAD、log10/ln、constants、domain errors、division by zero、non-finite）。
 7. 執行 format、analyze 及 tests。
-8. 不要在 Phase 4 直接接駁 UI（保留舊 `expression_editor.dart` 直到 Phase 6）。
+8. 不要在 Phase 5 直接接駁 UI（保留舊 evaluator/engine 直到 Phase 6）。
 
 ---
 
