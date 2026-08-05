@@ -21,7 +21,19 @@ class CalculatorScreen extends ConsumerWidget {
     final displayTex = serializer.serialize(
       state.document,
       fractionDraft: state.fractionDraft,
+      showCursor: false,
     );
+
+    final displayTexWithCursor = serializer.serialize(
+      state.document,
+      fractionDraft: state.fractionDraft,
+      showCursor: true,
+    );
+
+    final activeDocument =
+        state.fractionDraft?.activeDocument ?? state.document;
+
+    final fallbackText = activeDocument.evaluationExpression;
 
     return Scaffold(
       appBar: AppBar(
@@ -50,7 +62,9 @@ class CalculatorScreen extends ConsumerWidget {
                       children: [
                         NaturalMathDisplay(
                           tex: displayTex,
-                          fallbackText: state.document.evaluationExpression,
+                          texWithCursor: displayTexWithCursor,
+                          fallbackText: fallbackText,
+                          showCursor: !state.hasEvaluated,
                         ),
                         const Divider(height: 1),
                         ResultDisplay(
@@ -87,7 +101,6 @@ class CalculatorScreen extends ConsumerWidget {
                       onFraction: viewModel.startFraction,
                       onMoveUp: viewModel.moveFractionUp,
                       onMoveDown: viewModel.moveFractionDown,
-                      onConfirmFraction: viewModel.confirmFraction,
                     ),
                   ),
                 ],

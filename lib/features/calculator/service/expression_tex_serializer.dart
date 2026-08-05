@@ -7,29 +7,33 @@ class ExpressionTexSerializer {
   String serialize(
     ExpressionDocument document, {
     FractionDraft? fractionDraft,
+    bool showCursor = false,
   }) {
     final mainTex = _createSafeTex(document.texExpression);
 
     if (fractionDraft == null) {
-      return mainTex.isEmpty ? r'\square' : mainTex;
+      return _serializeMainExpression(mainTex, showCursor: showCursor);
     }
 
-    final numeratorTex = _draftPartTex(
+    final numeratorIsActive =
+        fractionDraft.activePart == FractionPart.numerator;
+
+    final denominatorIsActive =
+        fractionDraft.activePart == FractionPart.denominator;
+
+    final numeratorTex = _serializeFractionPart(
       fractionDraft.numerator,
-      isActive: fractionDraft.activePart == FractionPart.numerator,
+      isActive: numeratorIsActive,
+      showCursor: showCursor,
     );
 
-    final denominatorTex = _draftPartTex(
+    final denominatorTex = _serializeFractionPart(
       fractionDraft.denominator,
-      isActive: fractionDraft.activePart == FractionPart.denominator,
+      isActive: denominatorIsActive,
+      showCursor: showCursor,
     );
 
-    final fractionTex =
-        r'\frac{'
-        '$numeratorTex'
-        r'}{'
-        '$denominatorTex'
-        r'}';
+    final fractionTex = '\\frac{$numeratorTex}{$denominatorTex}';
 
     if (mainTex.isEmpty) {
       return fractionTex;
@@ -38,24 +42,34 @@ class ExpressionTexSerializer {
     return '$mainTex$fractionTex';
   }
 
-  String serializeDocument(ExpressionDocument document) {
-    final result = _createSafeTex(document.texExpression);
+  String _serializeMainExpression(String mainTex, {required bool showCursor}) {
+    final cursorTex = showCursor ? _visibleCursor : _hiddenCursor;
 
-    return result.isEmpty ? r'\square' : result;
+    if (mainTex.isEmpty) {
+      return '$cursorTex$_minimumWidth';
+    }
+
+    return '$mainTex$cursorTex';
   }
 
-  String _draftPartTex(ExpressionDocument document, {required bool isActive}) {
+  String _serializeFractionPart(
+    ExpressionDocument document, {
+    required bool isActive,
+    required bool showCursor,
+  }) {
     final safeTex = _createSafeTex(document.texExpression);
 
-    if (safeTex.isEmpty) {
-      return isActive ? r'\boxed{\phantom{0}}' : r'\square';
-    }
-
     if (!isActive) {
-      return safeTex;
+      return safeTex.isEmpty ? _minimumWidth : safeTex;
     }
 
-    return '\\boxed{$safeTex}';
+    final cursorTex = showCursor ? _visibleCursor : _hiddenCursor;
+
+    if (safeTex.isEmpty) {
+      return '$cursorTex$_minimumWidth';
+    }
+
+    return '$safeTex$cursorTex';
   }
 
   String _createSafeTex(String source) {
@@ -78,9 +92,9 @@ class ExpressionTexSerializer {
       }
     }
 
-    final openingBraceCount = _countUnescaped(tex, '{');
+    final openingBraceCount = _countCharacter(tex, '{');
 
-    final closingBraceCount = _countUnescaped(tex, '}');
+    final closingBraceCount = _countCharacter(tex, '}');
 
     final missingClosingBraces = openingBraceCount - closingBraceCount;
 
@@ -91,7 +105,7 @@ class ExpressionTexSerializer {
     return tex;
   }
 
-  int _countUnescaped(String value, String character) {
+  int _countCharacter(String value, String character) {
     var count = 0;
 
     for (var index = 0; index < value.length; index++) {
@@ -102,4 +116,10 @@ class ExpressionTexSerializer {
 
     return count;
   }
+
+  static const String _visibleCursor = r'\,\vert';
+
+  static const String _hiddenCursor = r'\,\phantom{\vert}';
+
+  static const String _minimumWidth = r'\phantom{0}';
 }

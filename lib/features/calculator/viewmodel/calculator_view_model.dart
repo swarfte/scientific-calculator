@@ -106,11 +106,29 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
   }
 
   void backspace() {
-    _updateDocument(_editor.backspace(_activeDocument), preserveResult: true);
+    final draft = state.fractionDraft;
+
+    if (draft != null) {
+      final updatedDocument = _editor.backspace(draft.activeDocument);
+
+      state = state.copyWith(
+        fractionDraft: draft.updateActiveDocument(updatedDocument),
+        hasEvaluated: false,
+        clearResult: true,
+        clearError: true,
+      );
+
+      return;
+    }
+
+    _updateDocument(_editor.backspace(state.document), preserveResult: true);
   }
 
   void clear() {
-    state = CalculatorState.initial().copyWith(angleMode: state.angleMode);
+    state = CalculatorState.initial().copyWith(
+      angleMode: state.angleMode,
+      fractionDraft: null,
+    );
   }
 
   void toggleAngleMode() {
@@ -122,18 +140,32 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
   }
 
   void calculate() {
-    if (state.fractionDraft != null) {
-      if (!state.fractionDraft!.isComplete) {
-        state = state.copyWith(errorMessage: '請完成分子和分母', hasEvaluated: false);
+    var documentToEvaluate = state.document;
+
+    final draft = state.fractionDraft;
+
+    if (draft != null) {
+      if (draft.numerator.isEmpty) {
+        state = state.copyWith(errorMessage: '請輸入分子', hasEvaluated: false);
 
         return;
       }
 
-      confirmFraction();
+      if (draft.denominator.isEmpty) {
+        state = state.copyWith(
+          fractionDraft: draft.moveToDenominator(),
+          errorMessage: '請輸入分母',
+          hasEvaluated: false,
+        );
+
+        return;
+      }
+
+      documentToEvaluate = _commitFraction(draft);
     }
 
     try {
-      final completedDocument = _editor.closePendingGroups(state.document);
+      final completedDocument = _editor.closePendingGroups(documentToEvaluate);
 
       final result = _engine.evaluate(
         completedDocument,
@@ -142,6 +174,7 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
 
       state = state.copyWith(
         document: completedDocument,
+        fractionDraft: null,
         result: result,
         hasEvaluated: true,
         clearError: true,
@@ -207,12 +240,34 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
   }
 
   void startFraction() {
-    if (state.fractionDraft != null) {
+    final currentDraft = state.fractionDraft;
+
+    if (currentDraft != null) {
+      final nextDraft = currentDraft.activePart == FractionPart.numerator
+          ? currentDraft.moveToDenominator()
+          : currentDraft.moveToNumerator();
+
+      state = state.copyWith(fractionDraft: nextDraft, clearError: true);
+
       return;
     }
 
+    final existingDocument = state.document;
+    final hasExistingExpression = !existingDocument.isEmpty;
+
+    final draft = FractionDraft(
+      numerator: hasExistingExpression
+          ? existingDocument
+          : ExpressionDocument.empty(),
+      denominator: ExpressionDocument.empty(),
+      activePart: hasExistingExpression
+          ? FractionPart.denominator
+          : FractionPart.numerator,
+    );
+
     state = state.copyWith(
-      fractionDraft: FractionDraft.empty(),
+      document: ExpressionDocument.empty(),
+      fractionDraft: draft,
       hasEvaluated: false,
       clearResult: true,
       clearError: true,
@@ -245,35 +300,11 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
     );
   }
 
-  void confirmFraction() {
-    final draft = state.fractionDraft;
-
-    if (draft == null) {
-      return;
-    }
-
-    if (draft.numerator.isEmpty) {
-      state = state.copyWith(fractionDraft: draft.moveToNumerator());
-      return;
-    }
-
-    if (draft.denominator.isEmpty) {
-      state = state.copyWith(fractionDraft: draft.moveToDenominator());
-      return;
-    }
-
-    final document = _editor.appendFraction(
-      _activeDocument,
+  ExpressionDocument _commitFraction(FractionDraft draft) {
+    return _editor.appendFraction(
+      state.document,
       numerator: draft.numerator,
       denominator: draft.denominator,
-    );
-
-    state = state.copyWith(
-      document: document,
-      fractionDraft: null,
-      hasEvaluated: false,
-      clearResult: true,
-      clearError: true,
     );
   }
 }
