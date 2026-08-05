@@ -2,7 +2,7 @@
 
 > 專案：`scientific_calculator`  
 > 架構：Flutter + Riverpod + MVVM + Editable Expression Tree  
-> 文件狀態：Phase 1 已完成，其餘階段待實作  
+> 文件狀態：Phase 1、Phase 2 已完成，其餘階段待實作  
 > 最後更新：2026-08-05
 
 ---
@@ -135,7 +135,7 @@ Phase 6  Riverpod MVVM、UI 接駁及移除舊架構
 
 ```text
 [x] Phase 1：Expression Tree Model
-[ ] Phase 2：Tree Index 與結構化導航
+[x] Phase 2：Tree Index 與結構化導航
 [ ] Phase 3：Tree TeX Serializer 與游標顯示
 [ ] Phase 4：Tree Expression Editor
 [ ] Phase 5：Validator、Compiler、Evaluator 與 Engine
@@ -352,7 +352,40 @@ textOffset
 
 ## 狀態
 
-**待實作。**
+**已完成。**
+
+已建立以下結構（UI-free 平行層，未修改任何 production code）：
+
+```text
+lib/features/calculator/model/expression/
+├── sequence_role.dart
+├── tree_expression_document.dart
+└── tree_index.dart
+lib/features/calculator/service/
+└── expression_navigator.dart
+test/features/calculator/
+├── model/expression/tree_index_test.dart
+└── service/expression_navigator_test.dart
+```
+
+### Cursor 慣例（已明確化）
+
+`CursorPosition` 有兩種模式：
+
+- **Gap mode**（`textOffset == null`）：`nodeOffset ∈ [0, len]` 表示游標位於
+  `sequence.children[nodeOffset]` 前方的間隙。`0` = sequence 開頭，`len` = 結尾。
+- **Text mode**（`textOffset != null`）：游標位於 NumberNode
+  `sequence.children[nodeOffset]` 內，字元位置 `textOffset ∈ [0, value.length]`。
+
+並為 `CursorPosition` 補上 `==` / `hashCode`（Phase 1 測試矩陣所列項目）。
+
+### Leaf node 橫向跨越規則
+
+- NumberNode 兩側都會進入文字（向右進 offset 0、向左進末端）。
+- Operator / Constant 等無文字 leaf 直接跨越（向右至後方間隙、向左至前方間隙）。
+- 同一 owner 的 child sequence 形成水平鏈：numerator 末端向右進入 denominator
+  開頭，反之亦然；只有鏈的邊緣才會離開 owner（function argument / group
+  content 為單一 child，因此邊緣即離開）。
 
 ## 目標
 
@@ -1555,24 +1588,21 @@ Responsive layout
 
 # 6. 目前下一步
 
-目前只完成 Phase 1，因此下一步應是：
+目前完成 Phase 1 與 Phase 2，因此下一步應是：
 
 ```text
-Phase 2：Tree Index 與結構化導航
+Phase 3：Tree TeX Serializer 與游標顯示
 ```
 
 具體順序：
 
-1. 暫時恢復舊版仍引用的 `fraction_draft.dart`，或先建立 migration compatibility layer。
-2. 建立 `TreeExpressionDocument`。
-3. 建立 `SequenceRole` 和 parent relationship。
-4. 建立 `TreeIndex`。
-5. 實作 `ExpressionNavigator.moveLeft()`。
-6. 實作 `moveRight()`。
-7. 實作 `moveUp()` 和 `moveDown()`。
-8. 為函數、分數、根式及指數建立 Navigator tests。
-9. 執行 format、analyze 及 tests。
-10. 不要在 Phase 2 直接接駁 UI。
+1. 建立 `tree_expression_tex_serializer.dart`，直接遍歷 Tree 產生 TeX。
+2. 在 cursor 位置插入 visible (`\vert`) / hidden (`\phantom{\vert}`) cursor marker。
+3. 空 sequence 使用 `\phantom{0}` 占位。
+4. 建立 `tex_serialization_result.dart`（如有需要）。
+5. 為所有 MVP node 類型與 cursor 位置建立 Serializer tests。
+6. 執行 format、analyze 及 tests。
+7. 不要在 Phase 3 直接接駁 UI（保留舊 `expression_tex_serializer.dart` 直到 Phase 6）。
 
 ---
 

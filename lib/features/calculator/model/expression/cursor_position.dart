@@ -22,6 +22,17 @@ final class CursorPosition {
 
   bool get isInsideText => textOffset != null;
 
+  @override
+  bool operator ==(Object other) {
+    return other is CursorPosition &&
+        other.sequenceId == sequenceId &&
+        other.nodeOffset == nodeOffset &&
+        other.textOffset == textOffset;
+  }
+
+  @override
+  int get hashCode => Object.hash(sequenceId, nodeOffset, textOffset);
+
   CursorPosition copyWith({
     NodeId? sequenceId,
     int? nodeOffset,
