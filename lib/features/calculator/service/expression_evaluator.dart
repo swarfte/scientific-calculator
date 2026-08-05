@@ -17,9 +17,12 @@ class ExpressionEvaluator {
     }
 
     try {
-      final normalized = _normalizeExpression(expression, angleMode: angleMode);
-
       final parser = GrammarParser();
+
+      _registerFunctions(parser, angleMode: angleMode);
+
+      final normalized = _normalizeExpression(expression);
+
       final parsedExpression = parser.parse(normalized);
 
       final context = ContextModel()
@@ -56,29 +59,87 @@ class ExpressionEvaluator {
     }
   }
 
-  String _normalizeExpression(
-    String expression, {
+  void _registerFunctions(
+    GrammarParser parser, {
     required AngleMode angleMode,
   }) {
-    var result = expression;
-
-    result = result.replaceAll('π', 'pi');
-
-    if (angleMode == AngleMode.degree) {
-      result = _convertSimpleTrigArgumentsToRadians(result);
+    double toRadians(double value) {
+      return angleMode == AngleMode.degree ? value * math.pi / 180 : value;
     }
 
-    return result;
+    parser.addFunction('sind', (arguments) {
+      _requireArgumentCount('sin', arguments, 1);
+
+      return math.sin(toRadians(arguments.first));
+    });
+
+    parser.addFunction('cosd', (arguments) {
+      _requireArgumentCount('cos', arguments, 1);
+
+      return math.cos(toRadians(arguments.first));
+    });
+
+    parser.addFunction('tand', (arguments) {
+      _requireArgumentCount('tan', arguments, 1);
+
+      return math.tan(toRadians(arguments.first));
+    });
+
+    parser.addFunction('sqrtx', (arguments) {
+      _requireArgumentCount('sqrt', arguments, 1);
+
+      final value = arguments.first;
+
+      if (value < 0) {
+        return double.nan;
+      }
+
+      return math.sqrt(value);
+    });
+
+    parser.addFunction('log10x', (arguments) {
+      _requireArgumentCount('log', arguments, 1);
+
+      final value = arguments.first;
+
+      if (value <= 0) {
+        return double.nan;
+      }
+
+      return math.log(value) / math.ln10;
+    });
+
+    parser.addFunction('lnx', (arguments) {
+      _requireArgumentCount('ln', arguments, 1);
+
+      final value = arguments.first;
+
+      if (value <= 0) {
+        return double.nan;
+      }
+
+      return math.log(value);
+    });
   }
 
-  String _convertSimpleTrigArgumentsToRadians(String expression) {
-    final pattern = RegExp(r'\b(sin|cos|tan)\((-?\d+(?:\.\d+)?)\)');
+  String _normalizeExpression(String expression) {
+    return expression
+        .replaceAll('π', 'pi')
+        .replaceAllMapped(RegExp(r'\bsin\s*\('), (_) => 'sind(')
+        .replaceAllMapped(RegExp(r'\bcos\s*\('), (_) => 'cosd(')
+        .replaceAllMapped(RegExp(r'\btan\s*\('), (_) => 'tand(')
+        .replaceAllMapped(RegExp(r'\bsqrt\s*\('), (_) => 'sqrtx(')
+        .replaceAllMapped(RegExp(r'\blog\s*\('), (_) => 'log10x(')
+        .replaceAllMapped(RegExp(r'\bln\s*\('), (_) => 'lnx(');
+  }
 
-    return expression.replaceAllMapped(pattern, (match) {
-      final functionName = match.group(1)!;
-      final value = match.group(2)!;
-
-      return '$functionName(($value)*pi/180)';
-    });
+  void _requireArgumentCount(
+    String functionName,
+    List<double> arguments,
+    int expected,
+  ) {
+    if (arguments.length != expected) {
+      throw FormatException('$functionName expects $expected argument');
+    }
   }
 }

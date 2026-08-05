@@ -18,7 +18,10 @@ class CalculatorScreen extends ConsumerWidget {
 
     final serializer = ref.watch(expressionTexSerializerProvider);
 
-    final displayTex = serializer.serialize(state.document);
+    final displayTex = serializer.serialize(
+      state.document,
+      fractionDraft: state.fractionDraft,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -45,7 +48,10 @@ class CalculatorScreen extends ConsumerWidget {
                     clipBehavior: Clip.antiAlias,
                     child: Column(
                       children: [
-                        NaturalMathDisplay(tex: displayTex),
+                        NaturalMathDisplay(
+                          tex: displayTex,
+                          fallbackText: state.document.evaluationExpression,
+                        ),
                         const Divider(height: 1),
                         ResultDisplay(
                           result: state.result?.formattedValue,
@@ -78,6 +84,10 @@ class CalculatorScreen extends ConsumerWidget {
                       onBackspace: viewModel.backspace,
                       onClear: viewModel.clear,
                       onCalculate: viewModel.calculate,
+                      onFraction: viewModel.startFraction,
+                      onMoveUp: viewModel.moveFractionUp,
+                      onMoveDown: viewModel.moveFractionDown,
+                      onConfirmFraction: viewModel.confirmFraction,
                     ),
                   ),
                 ],

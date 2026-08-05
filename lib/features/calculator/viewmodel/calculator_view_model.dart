@@ -7,6 +7,7 @@ import '../model/expression/expression_document.dart';
 import '../service/calculator_engine.dart';
 import '../service/expression_editor.dart';
 import 'calculator_providers.dart';
+import '../model/expression/fraction_draft.dart';
 
 class CalculatorViewModel extends Notifier<CalculatorState> {
   late final ExpressionEditor _editor;
@@ -21,11 +22,11 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
   }
 
   void inputDigit(String digit) {
-    _updateDocument(_editor.appendDigit(state.document, digit));
+    _updateDocument(_editor.appendDigit(_activeDocument, digit));
   }
 
   void inputDecimalPoint() {
-    _updateDocument(_editor.appendDecimalPoint(state.document));
+    _updateDocument(_editor.appendDecimalPoint(_activeDocument));
   }
 
   void inputAdd() {
@@ -45,23 +46,23 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
   }
 
   void inputOpenParenthesis() {
-    _updateDocument(_editor.appendOpenParenthesis(state.document));
+    _updateDocument(_editor.appendOpenParenthesis(_activeDocument));
   }
 
   void inputCloseParenthesis() {
-    _updateDocument(_editor.appendCloseParenthesis(state.document));
+    _updateDocument(_editor.appendCloseParenthesis(_activeDocument));
   }
 
   void inputSquare() {
-    _updateDocument(_editor.appendSquare(state.document));
+    _updateDocument(_editor.appendSquare(_activeDocument));
   }
 
   void inputPower() {
-    _updateDocument(_editor.appendPower(state.document));
+    _updateDocument(_editor.appendPower(_activeDocument));
   }
 
   void inputSquareRoot() {
-    _updateDocument(_editor.appendSquareRoot(state.document));
+    _updateDocument(_editor.appendSquareRoot(_activeDocument));
   }
 
   void inputSin() {
@@ -87,7 +88,7 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
   void inputPi() {
     _updateDocument(
       _editor.appendConstant(
-        state.document,
+        _activeDocument,
         evaluationValue: 'pi',
         texValue: r'\pi',
       ),
@@ -97,7 +98,7 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
   void inputEulerNumber() {
     _updateDocument(
       _editor.appendConstant(
-        state.document,
+        _activeDocument,
         evaluationValue: 'e',
         texValue: 'e',
       ),
@@ -105,7 +106,7 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
   }
 
   void backspace() {
-    _updateDocument(_editor.backspace(state.document), preserveResult: true);
+    _updateDocument(_editor.backspace(_activeDocument), preserveResult: true);
   }
 
   void clear() {
@@ -121,6 +122,16 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
   }
 
   void calculate() {
+    if (state.fractionDraft != null) {
+      if (!state.fractionDraft!.isComplete) {
+        state = state.copyWith(errorMessage: '請完成分子和分母', hasEvaluated: false);
+
+        return;
+      }
+
+      confirmFraction();
+    }
+
     try {
       final completedDocument = _editor.closePendingGroups(state.document);
 
@@ -146,7 +157,7 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
   }) {
     _updateDocument(
       _editor.appendOperator(
-        state.document,
+        _activeDocument,
         evaluationOperator: evaluationOperator,
         texOperator: texOperator,
       ),
@@ -159,7 +170,7 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
   }) {
     _updateDocument(
       _editor.appendFunction(
-        state.document,
+        _activeDocument,
         evaluationName: evaluationName,
         texName: texName,
       ),
@@ -170,10 +181,98 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
     ExpressionDocument document, {
     bool preserveResult = false,
   }) {
+    final draft = state.fractionDraft;
+
+    if (draft != null) {
+      state = state.copyWith(
+        fractionDraft: draft.updateActiveDocument(document),
+        hasEvaluated: false,
+        clearResult: !preserveResult,
+        clearError: true,
+      );
+
+      return;
+    }
+
     state = state.copyWith(
       document: document,
       hasEvaluated: false,
       clearResult: !preserveResult,
+      clearError: true,
+    );
+  }
+
+  ExpressionDocument get _activeDocument {
+    return state.fractionDraft?.activeDocument ?? state.document;
+  }
+
+  void startFraction() {
+    if (state.fractionDraft != null) {
+      return;
+    }
+
+    state = state.copyWith(
+      fractionDraft: FractionDraft.empty(),
+      hasEvaluated: false,
+      clearResult: true,
+      clearError: true,
+    );
+  }
+
+  void moveFractionUp() {
+    final draft = state.fractionDraft;
+
+    if (draft == null) {
+      return;
+    }
+
+    state = state.copyWith(
+      fractionDraft: draft.moveToNumerator(),
+      clearError: true,
+    );
+  }
+
+  void moveFractionDown() {
+    final draft = state.fractionDraft;
+
+    if (draft == null) {
+      return;
+    }
+
+    state = state.copyWith(
+      fractionDraft: draft.moveToDenominator(),
+      clearError: true,
+    );
+  }
+
+  void confirmFraction() {
+    final draft = state.fractionDraft;
+
+    if (draft == null) {
+      return;
+    }
+
+    if (draft.numerator.isEmpty) {
+      state = state.copyWith(fractionDraft: draft.moveToNumerator());
+      return;
+    }
+
+    if (draft.denominator.isEmpty) {
+      state = state.copyWith(fractionDraft: draft.moveToDenominator());
+      return;
+    }
+
+    final document = _editor.appendFraction(
+      _activeDocument,
+      numerator: draft.numerator,
+      denominator: draft.denominator,
+    );
+
+    state = state.copyWith(
+      document: document,
+      fractionDraft: null,
+      hasEvaluated: false,
+      clearResult: true,
       clearError: true,
     );
   }

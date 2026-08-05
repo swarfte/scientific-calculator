@@ -202,7 +202,7 @@ class ExpressionEditor {
       texExpression:
           '${document.texExpression}'
           '$texPrefix'
-          r'\sqrt{\left(',
+          r'\sqrt{',
       openParentheses: document.openParentheses + 1,
     );
   }
@@ -288,50 +288,77 @@ class ExpressionEditor {
   }
 
   ExpressionDocument closePendingGroups(ExpressionDocument document) {
-    if (document.openParentheses == 0) {
-      return _closePendingTexBraces(document);
-    }
+    var evaluation = document.evaluationExpression;
 
-    final evaluationClosing = List<String>.filled(
-      document.openParentheses,
-      ')',
-    ).join();
+    var tex = document.texExpression;
 
-    final texBuffer = StringBuffer(document.texExpression);
+    if (document.openParentheses > 0) {
+      evaluation += List<String>.filled(document.openParentheses, ')').join();
 
-    for (var index = 0; index < document.openParentheses; index++) {
-      if (_hasUnclosedSquareRoot(texBuffer.toString())) {
-        texBuffer.write(r'\right)}');
-      } else {
-        texBuffer.write(r'\right)');
+      for (var index = 0; index < document.openParentheses; index++) {
+        if (_hasUnclosedSquareRoot(tex)) {
+          tex += '}';
+        } else {
+          tex += r'\right)';
+        }
       }
     }
-
-    final completed = document.copyWith(
-      evaluationExpression:
-          '${document.evaluationExpression}'
-          '$evaluationClosing',
-      texExpression: texBuffer.toString(),
-      openParentheses: 0,
-    );
-
-    return _closePendingTexBraces(completed);
-  }
-
-  ExpressionDocument _closePendingTexBraces(ExpressionDocument document) {
-    var tex = document.texExpression;
 
     final openingBraceCount = RegExp(r'\{').allMatches(tex).length;
 
     final closingBraceCount = RegExp(r'\}').allMatches(tex).length;
 
-    final missingBraceCount = openingBraceCount - closingBraceCount;
-
-    if (missingBraceCount > 0) {
-      tex += List<String>.filled(missingBraceCount, '}').join();
+    if (openingBraceCount > closingBraceCount) {
+      tex += List<String>.filled(
+        openingBraceCount - closingBraceCount,
+        '}',
+      ).join();
     }
 
-    return document.copyWith(texExpression: tex);
+    return document.copyWith(
+      evaluationExpression: evaluation,
+      texExpression: tex,
+      openParentheses: 0,
+    );
+  }
+
+  ExpressionDocument appendFraction(
+    ExpressionDocument document, {
+    required ExpressionDocument numerator,
+    required ExpressionDocument denominator,
+  }) {
+    if (numerator.isEmpty || denominator.isEmpty) {
+      return document;
+    }
+
+    final completedNumerator = closePendingGroups(numerator);
+
+    final completedDenominator = closePendingGroups(denominator);
+
+    final needsMultiplication = _endsWithValue(document.evaluationExpression);
+
+    final evaluationPrefix = needsMultiplication ? '*' : '';
+
+    final texPrefix = needsMultiplication ? r'\times ' : '';
+
+    return document.copyWith(
+      evaluationExpression:
+          '${document.evaluationExpression}'
+          '$evaluationPrefix'
+          '(('
+          '${completedNumerator.evaluationExpression}'
+          ')/('
+          '${completedDenominator.evaluationExpression}'
+          '))',
+      texExpression:
+          '${document.texExpression}'
+          '$texPrefix'
+          r'\frac{'
+          '${completedNumerator.texExpression}'
+          r'}{'
+          '${completedDenominator.texExpression}'
+          r'}',
+    );
   }
 
   bool _currentNumberContainsDecimal(String expression) {
@@ -375,9 +402,21 @@ class ExpressionEditor {
   bool _hasUnclosedSquareRoot(String tex) {
     final squareRootCount = RegExp(r'\\sqrt\{').allMatches(tex).length;
 
-    final squareRootCloseCount = RegExp(r'\\right\)\}').allMatches(tex).length;
+    var closeCount = 0;
+    var depth = 0;
 
-    return squareRootCount > squareRootCloseCount;
+    for (var index = 0; index < tex.length; index++) {
+      if (tex[index] == '{') {
+        depth++;
+      } else if (tex[index] == '}') {
+        if (depth > 0) {
+          depth--;
+          closeCount++;
+        }
+      }
+    }
+
+    return squareRootCount > closeCount;
   }
 
   String _removeLastTexOperator(String tex) {
