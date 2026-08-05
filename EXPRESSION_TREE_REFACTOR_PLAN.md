@@ -2,8 +2,8 @@
 
 > 專案：`scientific_calculator`  
 > 架構：Flutter + Riverpod + MVVM + Editable Expression Tree  
-> 文件狀態：Phase 1、Phase 2 已完成，其餘階段待實作  
-> 最後更新：2026-08-05
+> 文件狀態：Phase 1、Phase 2、Phase 3 已完成，其餘階段待實作  
+> 最後更新：2026-08-06
 
 ---
 
@@ -136,7 +136,7 @@ Phase 6  Riverpod MVVM、UI 接駁及移除舊架構
 ```text
 [x] Phase 1：Expression Tree Model
 [x] Phase 2：Tree Index 與結構化導航
-[ ] Phase 3：Tree TeX Serializer 與游標顯示
+[x] Phase 3：Tree TeX Serializer 與游標顯示
 [ ] Phase 4：Tree Expression Editor
 [ ] Phase 5：Validator、Compiler、Evaluator 與 Engine
 [ ] Phase 6：Riverpod MVVM、UI 接駁及移除舊架構
@@ -536,7 +536,32 @@ test/features/calculator/service/expression_navigator_test.dart
 
 ## 狀態
 
-**待實作。**
+**已完成。**
+
+已建立以下結構（UI-free 平行層，未修改任何 production code，舊
+`expression_tex_serializer.dart` 仍保留至 Phase 6）：
+
+```text
+lib/features/calculator/model/expression/
+└── tex_serialization_result.dart
+lib/features/calculator/service/
+└── tree_expression_tex_serializer.dart
+test/features/calculator/service/
+└── tree_expression_tex_serializer_test.dart
+```
+
+### 實作重點
+
+- `TreeExpressionTexSerializer.serialize(document, {cursorVisible})` 回傳
+  `TexSerializationResult`，包含 `withVisibleCursor` 與 `withHiddenCursor`
+  兩個等寬 TeX 字串，供 `NaturalMathDisplay` 閃爍動畫切換。
+- 游標 marker 採單一 placeholder（private-use char）寫入，最後一次替換成
+  visible（`\vert`）/ hidden（`\phantom{\vert}`），確保兩版本結構完全一致、
+  閃爍時不左右位移。
+- 空 sequence：非 active 用 `\phantom{0}`；active 用 cursor marker +
+  `\phantom{0}`。
+- `cursorVisible=false`（例如已按 `=`）時，兩版本都用 hidden marker，游標
+  完全不顯示。
 
 ## 目標
 
@@ -1588,21 +1613,22 @@ Responsive layout
 
 # 6. 目前下一步
 
-目前完成 Phase 1 與 Phase 2，因此下一步應是：
+目前完成 Phase 1、Phase 2 與 Phase 3，因此下一步應是：
 
 ```text
-Phase 3：Tree TeX Serializer 與游標顯示
+Phase 4：Tree Expression Editor
 ```
 
 具體順序：
 
-1. 建立 `tree_expression_tex_serializer.dart`，直接遍歷 Tree 產生 TeX。
-2. 在 cursor 位置插入 visible (`\vert`) / hidden (`\phantom{\vert}`) cursor marker。
-3. 空 sequence 使用 `\phantom{0}` 占位。
-4. 建立 `tex_serialization_result.dart`（如有需要）。
-5. 為所有 MVP node 類型與 cursor 位置建立 Serializer tests。
-6. 執行 format、analyze 及 tests。
-7. 不要在 Phase 3 直接接駁 UI（保留舊 `expression_tex_serializer.dart` 直到 Phase 6）。
+1. 建立 `tree_expression_editor.dart` 與 `tree_rewriter.dart`，所有按鍵操作直接修改 Tree 並回傳 immutable document。
+2. 實作 immutable Tree 更新：`replaceSequence` / `replaceNode` / `removeNode`，沿 parent path 向上重建。
+3. 實作數字輸入合併、小數點守則、operator 替換、function / fraction / root / power 插入與提升。
+4. 實作 backspace 在每個 structural boundary 的行為（含深層 unwrap）。
+5. 建立 `edit_result.dart`（如有需要）。
+6. 為 editor 行為建立大量 unit tests（不能只靠手動測試）。
+7. 執行 format、analyze 及 tests。
+8. 不要在 Phase 4 直接接駁 UI（保留舊 `expression_editor.dart` 直到 Phase 6）。
 
 ---
 
