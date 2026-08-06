@@ -88,8 +88,8 @@ class CalculatorKeypad extends StatelessWidget {
         _row([
           _key('(', onOpenParenthesis, CalculatorKeyStyle.function),
           _key(')', onCloseParenthesis, CalculatorKeyStyle.function),
+
           _key('π', onPi, CalculatorKeyStyle.function),
-          _key('e', onEulerNumber, CalculatorKeyStyle.function),
           _key('÷', onDivide, CalculatorKeyStyle.operator),
         ]),
         _row([
@@ -111,8 +111,9 @@ class CalculatorKeypad extends StatelessWidget {
           _key('+', onAdd, CalculatorKeyStyle.operator),
         ]),
         _row([
-          _digit('0', flex: 2),
+          _digit('0'),
           _key('.', onDecimal, CalculatorKeyStyle.normal),
+          _key('e', onEulerNumber, CalculatorKeyStyle.function),
           _key('=', onCalculate, CalculatorKeyStyle.equals),
         ]),
       ],

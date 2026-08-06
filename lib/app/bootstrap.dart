@@ -1,16 +1,20 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 
+import '../core/platform/platform_info.dart';
 import 'app.dart';
+import 'always_on_top_settings.dart';
+import 'theme_settings.dart';
 import 'windows_state.dart';
 
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final isDesktop = Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+  final isDesktop = PlatformInfo.isDesktop;
+
+  // 預先載入 always-on-top 偏好；桌面平台會在視窗顯示前套用，避免閃爍。
+  final initialAlwaysOnTop = await AlwaysOnTopStorage.load();
 
   if (isDesktop) {
     await windowManager.ensureInitialized();
@@ -48,12 +52,26 @@ Future<void> bootstrap() async {
         }
       }
 
+      // 視窗顯示前套用 always-on-top，確保從一開始就維持釘選狀態。
+      await windowManager.setAlwaysOnTop(initialAlwaysOnTop);
+
       await windowManager.show();
       await windowManager.focus();
     });
   }
 
+  // 預先載入主題偏好，讓第一個畫面就套用上次選擇的主題，避免啟動閃爍。
+  final initialThemePreference = await ThemeSettingsStorage.load();
+
   runApp(
-    ProviderScope(child: WindowStateObserver(child: ScientificCalculatorApp())),
+    ProviderScope(
+      overrides: [
+        initialThemePreferenceProvider.overrideWith(
+          (ref) => initialThemePreference,
+        ),
+        initialAlwaysOnTopProvider.overrideWith((ref) => initialAlwaysOnTop),
+      ],
+      child: WindowStateObserver(child: ScientificCalculatorApp()),
+    ),
   );
 }

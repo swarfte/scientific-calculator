@@ -1,10 +1,11 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
+
+import '../core/platform/platform_info.dart';
 
 class WindowStateData {
   const WindowStateData({required this.bounds, required this.isMaximized});
@@ -277,14 +278,11 @@ class _WindowStateObserverState extends State<WindowStateObserver>
   // 最後一個非最大化狀態的視窗範圍。
   Rect? _lastNormalBounds;
 
-  bool get _isDesktop =>
-      Platform.isWindows || Platform.isMacOS || Platform.isLinux;
-
   @override
   void initState() {
     super.initState();
 
-    if (_isDesktop) {
+    if (PlatformInfo.isDesktop) {
       windowManager.addListener(this);
       unawaited(_captureInitialBounds());
     }
@@ -307,7 +305,7 @@ class _WindowStateObserverState extends State<WindowStateObserver>
   }
 
   Future<void> _saveWindowState() async {
-    if (!_isDesktop) {
+    if (!PlatformInfo.isDesktop) {
       return;
     }
 
@@ -366,7 +364,7 @@ class _WindowStateObserverState extends State<WindowStateObserver>
   void dispose() {
     _saveTimer?.cancel();
 
-    if (_isDesktop) {
+    if (PlatformInfo.isDesktop) {
       windowManager.removeListener(this);
     }
 

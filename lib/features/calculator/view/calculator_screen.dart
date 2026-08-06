@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/always_on_top_settings.dart';
 import '../viewmodel/calculator_providers.dart';
+import 'calculator_keyboard_input_enabled_provider.dart';
 import 'widgets/calculator_keypad.dart';
+import 'widgets/calculator_keyboard_listener.dart';
 import 'widgets/mode_indicator.dart';
 import 'widgets/natural_math_display.dart';
+import 'widgets/pin_button.dart';
 import 'widgets/result_display.dart';
+import 'widgets/settings_button.dart';
 
 class CalculatorScreen extends ConsumerWidget {
   const CalculatorScreen({super.key});
@@ -22,21 +27,34 @@ class CalculatorScreen extends ConsumerWidget {
       cursorVisible: !state.hasEvaluated,
     );
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Calculator'),
-        centerTitle: false,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: ModeIndicator(
-              angleMode: state.angleMode,
-              onPressed: viewModel.toggleAngleMode,
+    // 釘選 (always-on-top) 只在桌面平台提供。
+    final isDesktop = ref.watch(isDesktopPlatformProvider);
+
+    // 硬體鍵盤輸入只在桌面 / 瀏覽器啟用。
+    final isKeyboardInputEnabled = ref.watch(isKeyboardInputEnabledProvider);
+
+    return CalculatorKeyboardListener(
+      enabled: isKeyboardInputEnabled,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Calculator'),
+          centerTitle: false,
+          actions: [
+            if (isDesktop) const PinButton(),
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: ModeIndicator(
+                angleMode: state.angleMode,
+                onPressed: viewModel.toggleAngleMode,
+              ),
             ),
-          ),
-        ],
-      ),
-      body: SafeArea(
+            const Padding(
+              padding: EdgeInsets.only(right: 4),
+              child: SettingsButton(),
+            ),
+          ],
+        ),
+        body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 720),
@@ -97,6 +115,7 @@ class CalculatorScreen extends ConsumerWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }
