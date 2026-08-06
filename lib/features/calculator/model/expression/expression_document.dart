@@ -1,62 +1,8 @@
-class ExpressionDocument {
-  const ExpressionDocument({
-    this.evaluationExpression = '',
-    this.texExpression = '',
-    this.openParentheses = 0,
-    int? evaluationCursorOffset,
-    int? texCursorOffset,
-  }) : evaluationCursorOffset =
-           evaluationCursorOffset ?? evaluationExpression.length,
-       texCursorOffset = texCursorOffset ?? texExpression.length;
+import 'tree_expression_document.dart';
 
-  final String evaluationExpression;
-  final String texExpression;
-  final int openParentheses;
-
-  final int evaluationCursorOffset;
-  final int texCursorOffset;
-
-  bool get isEmpty {
-    return evaluationExpression.trim().isEmpty;
-  }
-
-  bool get isEvaluationCursorAtStart {
-    return evaluationCursorOffset <= 0;
-  }
-
-  bool get isEvaluationCursorAtEnd {
-    return evaluationCursorOffset >= evaluationExpression.length;
-  }
-
-  ExpressionDocument copyWith({
-    String? evaluationExpression,
-    String? texExpression,
-    int? openParentheses,
-    int? evaluationCursorOffset,
-    int? texCursorOffset,
-  }) {
-    final nextEvaluationExpression =
-        evaluationExpression ?? this.evaluationExpression;
-
-    final nextTexExpression = texExpression ?? this.texExpression;
-
-    return ExpressionDocument(
-      evaluationExpression: nextEvaluationExpression,
-      texExpression: nextTexExpression,
-      openParentheses: openParentheses ?? this.openParentheses,
-      evaluationCursorOffset:
-          (evaluationCursorOffset ?? this.evaluationCursorOffset).clamp(
-            0,
-            nextEvaluationExpression.length,
-          ),
-      texCursorOffset: (texCursorOffset ?? this.texCursorOffset).clamp(
-        0,
-        nextTexExpression.length,
-      ),
-    );
-  }
-
-  factory ExpressionDocument.empty() {
-    return const ExpressionDocument();
-  }
-}
+/// 算式的唯一資料來源：Expression Tree。
+///
+/// Phase 6 後，此型別即為 [TreeExpressionDocument] 的正式別名。State、
+/// ViewModel、Screen 與所有 service 均以此為算式模型，不再保存 evaluation
+/// string、TeX string 或 cursor offset。
+typedef ExpressionDocument = TreeExpressionDocument;

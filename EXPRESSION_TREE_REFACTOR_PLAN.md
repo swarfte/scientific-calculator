@@ -2,7 +2,7 @@
 
 > 專案：`scientific_calculator`  
 > 架構：Flutter + Riverpod + MVVM + Editable Expression Tree  
-> 文件狀態：Phase 1～Phase 5 已完成，其餘階段待實作  
+> 文件狀態：Phase 1～Phase 6 全部完成，重構已收尾  
 > 最後更新：2026-08-06
 
 ---
@@ -139,7 +139,7 @@ Phase 6  Riverpod MVVM、UI 接駁及移除舊架構
 [x] Phase 3：Tree TeX Serializer 與游標顯示
 [x] Phase 4：Tree Expression Editor
 [x] Phase 5：Validator、Compiler、Evaluator 與 Engine
-[ ] Phase 6：Riverpod MVVM、UI 接駁及移除舊架構
+[x] Phase 6：Riverpod MVVM、UI 接駁及移除舊架構
 ```
 
 ---
@@ -1243,7 +1243,51 @@ operator at end
 
 ## 狀態
 
-**待實作。**
+**已完成。**
+
+Expression Tree 重構全數收尾。production state 已改用
+`TreeExpressionDocument`，舊字串架構（evaluationExpression、texExpression、
+cursor offset、openParentheses、FractionDraft）與舊字串版 service 全數移除。
+
+### 重寫的 production 檔案
+
+```text
+lib/features/calculator/model/expression/expression_document.dart  （typedef -> TreeExpressionDocument）
+lib/features/calculator/model/calculator_state.dart                （Tree 欄位，移除 FractionDraft）
+lib/features/calculator/viewmodel/calculator_providers.dart        （註冊 Tree services）
+lib/features/calculator/viewmodel/calculator_view_model.dart       （Tree editor/navigator/engine）
+lib/features/calculator/view/calculator_screen.dart                （Tree serializer）
+lib/features/calculator/view/widgets/natural_math_display.dart     （移除 fallbackText）
+```
+
+### 刪除的舊檔案
+
+```text
+lib/features/calculator/model/expression/fraction_draft.dart
+lib/features/calculator/service/expression_editor.dart        （字串版）
+lib/features/calculator/service/expression_tex_serializer.dart （字串版）
+lib/features/calculator/service/expression_evaluator.dart     （字串版）
+lib/features/calculator/service/calculator_engine.dart        （字串版）
+lib/features/calculator/model/calculator_action.dart          （空佔位檔）
+lib/features/calculator/model/expression/node/binary_node.dart （空佔位檔）
+```
+
+### 新增測試
+
+```text
+test/features/calculator/viewmodel/calculator_view_model_test.dart  （9 個 state transition）
+test/features/calculator/view/calculator_screen_test.dart           （5 個 widget test）
+```
+
+### 已知設計細節
+
+- `)` 鍵在 Tree 模型沒有對應的「關閉群組」操作（離開群組由方向鍵處理），
+  因此 `)` 鍵與 `(` 鍵行為一致（都呼叫 `insertGroup`），保留既有 keypad 版面。
+- 任何輸入後清除 error（backspace、數字、方向鍵等都會清）。
+- `NaturalMathDisplay` 使用無限循環閃爍動畫，widget test 需用 `pump()` 而非
+  `pumpAndSettle()`（後者會因動畫永不完結而 timeout）。
+- Tree 版 service 檔名仍保留 `tree_` 前綴（`tree_calculator_engine.dart` 等），
+  未強制改名，避免影響 import；後續可視需要再改名。
 
 ## 目標
 
@@ -1674,56 +1718,37 @@ Responsive layout
 
 整個 Expression Tree 重構只有在以下條件全部滿足時才算完成：
 
-- [ ] Expression Tree 是唯一算式資料來源。
-- [ ] 沒有 production code 儲存 evaluation expression string。
-- [ ] 沒有 production code 儲存 TeX expression string。
-- [ ] 沒有 evaluation/TeX cursor offset 同步邏輯。
-- [ ] FractionDraft 已移除。
-- [ ] 所有輸入操作透過 Tree Editor。
-- [ ] 所有方向移動透過 Tree Navigator。
-- [ ] TeX 完全由 Tree Serializer 產生。
-- [ ] 計算完全由 Tree Compiler 產生。
-- [ ] 錯誤只在按 `=` 後出現於 ResultDisplay。
-- [ ] 函數 argument 可進出。
-- [ ] 分子、分母可上下及左右導航。
-- [ ] 根式及指數可進出。
-- [ ] 游標閃爍不造成公式位移。
-- [ ] `flutter analyze` 無問題。
-- [ ] 全部 unit/widget tests 通過。
-- [ ] Windows App 可執行。
-- [ ] 至少另一個 Flutter target 可執行。
+- [x] Expression Tree 是唯一算式資料來源。
+- [x] 沒有 production code 儲存 evaluation expression string。
+- [x] 沒有 production code 儲存 TeX expression string。
+- [x] 沒有 evaluation/TeX cursor offset 同步邏輯。
+- [x] FractionDraft 已移除。
+- [x] 所有輸入操作透過 Tree Editor。
+- [x] 所有方向移動透過 Tree Navigator。
+- [x] TeX 完全由 Tree Serializer 產生。
+- [x] 計算完全由 Tree Compiler 產生。
+- [x] 錯誤只在按 `=` 後出現於 ResultDisplay。
+- [x] 函數 argument 可進出。
+- [x] 分子、分母可上下及左右導航。
+- [x] 根式及指數可進出。
+- [x] 游標閃爍不造成公式位移。
+- [x] `flutter analyze` 無問題。
+- [x] 全部 unit/widget tests 通過（140 tests）。
+- [ ] Windows App 可執行（本機為 macOS，未驗證 Windows target）。
+- [x] 至少另一個 Flutter target 可執行（macOS debug build 成功）。
 
 ---
 
 # 6. 目前下一步
 
-目前完成 Phase 1～Phase 5，因此下一步應是：
+六個 Phase 全數完成，Expression Tree 重構已收尾。後續可考慮的方向：
 
-```text
-Phase 6：Riverpod MVVM、UI 接駁及移除舊架構
-```
-
-這是唯一需要集中修改多個 production files 的階段。建議 migration 順序：
-
-1. Providers 註冊 Tree services（`TreeExpressionEditor` /
-   `ExpressionNavigator` / `TreeExpressionTexSerializer` /
-   `ExpressionValidator` / `ExpressionCompiler` / `TreeExpressionEvaluator` /
-   `TreeCalculatorEngine`）。
-2. `CalculatorState` 改用 `TreeExpressionDocument`，移除
-   `evaluationExpression` / `texExpression` / `openParentheses` /
-   `evaluationCursorOffset` / `texCursorOffset` / `fractionDraft` /
-   `isEditingFraction`。
-3. ViewModel 所有 input method 改接 `TreeExpressionEditor`，左右上下改接
-   `ExpressionNavigator`。
-4. Screen 改接 `TreeExpressionTexSerializer` 產生 visible/hidden TeX。
-5. `calculate()` 改接 `TreeCalculatorEngine`。
-6. 執行所有 tests。
-7. 刪除舊字串 model：`expression_editor.dart`、`expression_tex_serializer.dart`、
-   `expression_evaluator.dart`、`calculator_engine.dart`（字串版）、
-   `fraction_draft.dart`，以及舊 `ExpressionDocument`。
-8. 再次執行 analyze / test。
-9. 將 Tree 版檔案改名為正式名稱（`tree_calculator_engine.dart` ->
-   `calculator_engine.dart` 等）。
+- 將 Tree 版 service 檔案改名去掉 `tree_` 前綴（`tree_calculator_engine.dart` ->
+  `calculator_engine.dart` 等），目前保留前綴以避免影響 import。
+- 在 Windows target 上驗證 App 可執行（本機為 macOS，已驗證 macOS debug build）。
+- 加入 Golden tests（普通算式、函數、分數、根式、指數、深色/亮色）。
+- 擴充功能（見第 9 節）：精確 Rational 結果、階乘與百分比、反三角函數、
+  科學記數法模板、Ans 與計算歷史、方程求解、複數、微積分、矩陣模式等。
 
 ---
 

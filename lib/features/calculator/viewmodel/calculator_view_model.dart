@@ -4,393 +4,227 @@ import '../../../core/errors/calculator_exception.dart';
 import '../../../core/math/angle_mode.dart';
 import '../model/calculator_state.dart';
 import '../model/expression/expression_document.dart';
-import '../service/calculator_engine.dart';
-import '../service/expression_editor.dart';
+import '../model/expression/node/constant_node.dart';
+import '../model/expression/node/function_node.dart';
+import '../model/expression/node/operator_node.dart';
+import '../service/expression_navigator.dart';
+import '../service/tree_calculator_engine.dart';
+import '../service/tree_expression_editor.dart';
 import 'calculator_providers.dart';
-import '../model/expression/fraction_draft.dart';
 
+/// 計算機 ViewModel。
+///
+/// 所有按鍵 intent 都轉發至 Tree services：
+/// - 輸入類（數字、運算符、函數、分數、根號、指數、群組）-> [TreeExpressionEditor]
+/// - 方向鍵 -> [ExpressionNavigator]
+/// - `=` -> [TreeCalculatorEngine]
+///
+/// ViewModel 不建立 TeX、不持有 BuildContext、不操作 Widget、不直接修改 Tree。
 class CalculatorViewModel extends Notifier<CalculatorState> {
-  late final ExpressionEditor _editor;
-  late final CalculatorEngine _engine;
+  late final TreeExpressionEditor _editor;
+  late final ExpressionNavigator _navigator;
+  late final TreeCalculatorEngine _engine;
 
   @override
   CalculatorState build() {
-    _editor = ref.read(expressionEditorProvider);
-    _engine = ref.read(calculatorEngineProvider);
-
+    _editor = ref.read(treeExpressionEditorProvider);
+    _navigator = ref.read(expressionNavigatorProvider);
+    _engine = ref.read(treeCalculatorEngineProvider);
     return CalculatorState.initial();
   }
 
+  // ---- 數字 / 小數點 -------------------------------------------------------
+
   void inputDigit(String digit) {
-    _updateDocument(_editor.appendDigit(_activeDocument, digit));
+    _edit((doc) => _editor.insertDigit(doc, digit));
   }
 
   void inputDecimalPoint() {
-    _updateDocument(_editor.appendDecimalPoint(_activeDocument));
+    _edit(_editor.insertDecimalPoint);
   }
 
+  // ---- 運算符 -------------------------------------------------------------
+
   void inputAdd() {
-    _inputOperator(evaluationOperator: '+', texOperator: '+');
+    _inputOperator(ExpressionOperator.add);
   }
 
   void inputSubtract() {
-    _inputOperator(evaluationOperator: '-', texOperator: '-');
+    _inputOperator(ExpressionOperator.subtract);
   }
 
   void inputMultiply() {
-    _inputOperator(evaluationOperator: '*', texOperator: r'\times');
+    _inputOperator(ExpressionOperator.multiply);
   }
 
   void inputDivide() {
-    _inputOperator(evaluationOperator: '/', texOperator: r'\div');
+    _inputOperator(ExpressionOperator.divide);
   }
 
-  void inputOpenParenthesis() {
-    _updateDocument(_editor.appendOpenParenthesis(_activeDocument));
+  void _inputOperator(ExpressionOperator operator) {
+    _edit((doc) => _editor.insertOperator(doc, operator));
   }
 
-  void inputCloseParenthesis() {
-    _updateDocument(_editor.appendCloseParenthesis(_activeDocument));
-  }
-
-  void inputSquare() {
-    _updateDocument(_editor.appendSquare(_activeDocument));
-  }
-
-  void inputPower() {
-    _updateDocument(_editor.appendPower(_activeDocument));
-  }
-
-  void inputSquareRoot() {
-    _updateDocument(_editor.appendSquareRoot(_activeDocument));
-  }
+  // ---- 函數 ---------------------------------------------------------------
 
   void inputSin() {
-    _inputFunction(evaluationName: 'sin', texName: r'\sin');
+    _inputFunction(MathFunction.sin);
   }
 
   void inputCos() {
-    _inputFunction(evaluationName: 'cos', texName: r'\cos');
+    _inputFunction(MathFunction.cos);
   }
 
   void inputTan() {
-    _inputFunction(evaluationName: 'tan', texName: r'\tan');
+    _inputFunction(MathFunction.tan);
   }
 
-  void inputLog() {
-    _inputFunction(evaluationName: 'log', texName: r'\log_{10}');
+  void inputLog10() {
+    _inputFunction(MathFunction.log10);
   }
 
   void inputLn() {
-    _inputFunction(evaluationName: 'ln', texName: r'\ln');
+    _inputFunction(MathFunction.ln);
   }
 
+  void _inputFunction(MathFunction function) {
+    _edit((doc) => _editor.insertFunction(doc, function));
+  }
+
+  // ---- 常數 ---------------------------------------------------------------
+
   void inputPi() {
-    _updateDocument(
-      _editor.appendConstant(
-        _activeDocument,
-        evaluationValue: 'pi',
-        texValue: r'\pi',
-      ),
-    );
+    _inputConstant(MathConstant.pi);
   }
 
   void inputEulerNumber() {
-    _updateDocument(
-      _editor.appendConstant(
-        _activeDocument,
-        evaluationValue: 'e',
-        texValue: 'e',
-      ),
-    );
+    _inputConstant(MathConstant.e);
   }
 
+  void _inputConstant(MathConstant constant) {
+    _edit((doc) => _editor.insertConstant(doc, constant));
+  }
+
+  // ---- 結構 node ----------------------------------------------------------
+
+  void inputFraction() {
+    _edit(_editor.insertFraction);
+  }
+
+  void inputSquareRoot() {
+    _edit(_editor.insertSquareRoot);
+  }
+
+  void inputNthRoot() {
+    _edit(_editor.insertNthRoot);
+  }
+
+  void inputPower() {
+    _edit(_editor.insertPower);
+  }
+
+  void inputSquare() {
+    _edit(_editor.insertSquare);
+  }
+
+  /// `(` 鍵：建立群組。
+  void inputOpenGroup() {
+    _edit(_editor.insertGroup);
+  }
+
+  /// `)` 鍵：Tree 模型沒有「關閉群組」操作（離開群組由方向鍵處理）。
+  ///
+  /// 為保留既有 keypad 行為，這裡也建立新群組，與 `(` 行為一致。
+  void inputCloseGroup() {
+    _edit(_editor.insertGroup);
+  }
+
+  // ---- 方向鍵 -------------------------------------------------------------
+
+  void moveLeft() {
+    _move(_navigator.moveLeft);
+  }
+
+  void moveRight() {
+    _move(_navigator.moveRight);
+  }
+
+  void moveUp() {
+    _move(_navigator.moveUp);
+  }
+
+  void moveDown() {
+    _move(_navigator.moveDown);
+  }
+
+  // ---- Backspace / Clear --------------------------------------------------
+
   void backspace() {
-    final draft = state.fractionDraft;
-
-    if (draft != null) {
-      final updatedDocument = _editor.backspace(draft.activeDocument);
-
-      state = state.copyWith(
-        fractionDraft: draft.updateActiveDocument(updatedDocument),
-        hasEvaluated: false,
-        clearResult: true,
-        clearError: true,
-      );
-
-      return;
-    }
-
-    _updateDocument(_editor.backspace(state.document), preserveResult: true);
+    _edit(_editor.backspace, preserveResult: true);
   }
 
   void clear() {
+    // AC 清空 Tree 與結果，但保留 angle mode。
     state = CalculatorState.initial().copyWith(
       angleMode: state.angleMode,
-      fractionDraft: null,
+      answer: state.answer,
     );
   }
+
+  // ---- 計算 ---------------------------------------------------------------
+
+  void calculate() {
+    try {
+      final result = _engine.evaluate(
+        state.document.root,
+        angleMode: state.angleMode,
+        answer: state.answer,
+      );
+      state = state.copyWith(
+        result: result,
+        answer: result.value.toDouble(),
+        hasEvaluated: true,
+        clearError: true,
+      );
+    } on CalculatorException catch (error) {
+      state = state.copyWith(
+        errorMessage: error.message,
+        hasEvaluated: false,
+        clearResult: true,
+      );
+    }
+  }
+
+  // ---- 角度模式 -----------------------------------------------------------
 
   void toggleAngleMode() {
     final nextMode = state.angleMode == AngleMode.degree
         ? AngleMode.radian
         : AngleMode.degree;
-
     state = state.copyWith(angleMode: nextMode, clearError: true);
   }
 
-  void calculate() {
-    var documentToEvaluate = state.document;
+  // ---- helpers ------------------------------------------------------------
 
-    final draft = state.fractionDraft;
-
-    if (draft != null) {
-      if (draft.numerator.isEmpty) {
-        state = state.copyWith(errorMessage: '請輸入分子', hasEvaluated: false);
-
-        return;
-      }
-
-      if (draft.denominator.isEmpty) {
-        state = state.copyWith(
-          fractionDraft: draft.moveToDenominator(),
-          errorMessage: '請輸入分母',
-          hasEvaluated: false,
-        );
-
-        return;
-      }
-
-      documentToEvaluate = _commitFraction(draft);
-    }
-
-    try {
-      final completedDocument = _editor.closePendingGroups(documentToEvaluate);
-
-      final result = _engine.evaluate(
-        completedDocument,
-        angleMode: state.angleMode,
-      );
-
-      state = state.copyWith(
-        document: completedDocument,
-        fractionDraft: null,
-        result: result,
-        hasEvaluated: true,
-        clearError: true,
-      );
-    } on CalculatorException catch (error) {
-      state = state.copyWith(errorMessage: error.message, hasEvaluated: false);
-    }
-  }
-
-  void _inputOperator({
-    required String evaluationOperator,
-    required String texOperator,
-  }) {
-    _updateDocument(
-      _editor.appendOperator(
-        _activeDocument,
-        evaluationOperator: evaluationOperator,
-        texOperator: texOperator,
-      ),
-    );
-  }
-
-  void _inputFunction({
-    required String evaluationName,
-    required String texName,
-  }) {
-    _updateDocument(
-      _editor.appendFunction(
-        _activeDocument,
-        evaluationName: evaluationName,
-        texName: texName,
-      ),
-    );
-  }
-
-  void moveCursorLeft() {
-    final draft = state.fractionDraft;
-
-    if (draft != null) {
-      final activeDocument = draft.activeDocument;
-
-      if (activeDocument.evaluationCursorOffset > 0) {
-        state = state.copyWith(
-          fractionDraft: draft.updateActiveDocument(
-            _editor.moveCursorLeft(activeDocument),
-          ),
-          hasEvaluated: false,
-          clearError: true,
-        );
-
-        return;
-      }
-
-      if (draft.activePart == FractionPart.denominator) {
-        final numeratorAtEnd = draft.numerator.copyWith(
-          evaluationCursorOffset: draft.numerator.evaluationExpression.length,
-          texCursorOffset: draft.numerator.texExpression.length,
-        );
-
-        state = state.copyWith(
-          fractionDraft: draft
-              .copyWith(numerator: numeratorAtEnd)
-              .moveToNumerator(),
-          hasEvaluated: false,
-          clearError: true,
-        );
-      }
-
-      return;
-    }
-
-    state = state.copyWith(
-      document: _editor.moveCursorLeft(state.document),
-      hasEvaluated: false,
-      clearError: true,
-    );
-  }
-
-  void moveCursorRight() {
-    final draft = state.fractionDraft;
-
-    if (draft != null) {
-      final activeDocument = draft.activeDocument;
-
-      if (!activeDocument.isEvaluationCursorAtEnd) {
-        state = state.copyWith(
-          fractionDraft: draft.updateActiveDocument(
-            _editor.moveCursorRight(activeDocument),
-          ),
-          hasEvaluated: false,
-          clearError: true,
-        );
-
-        return;
-      }
-
-      if (draft.activePart == FractionPart.numerator) {
-        final denominatorAtStart = draft.denominator.copyWith(
-          evaluationCursorOffset: 0,
-          texCursorOffset: 0,
-        );
-
-        state = state.copyWith(
-          fractionDraft: draft
-              .copyWith(denominator: denominatorAtStart)
-              .moveToDenominator(),
-          hasEvaluated: false,
-          clearError: true,
-        );
-      }
-
-      return;
-    }
-
-    state = state.copyWith(
-      document: _editor.moveCursorRight(state.document),
-      hasEvaluated: false,
-      clearError: true,
-    );
-  }
-
-  void _updateDocument(
-    ExpressionDocument document, {
+  /// 套用一個會修改 document 的編輯操作，並清除結果／錯誤。
+  ///
+  /// [preserveResult] 為 `true` 時（例如 backspace）保留舊結果，僅清錯誤。
+  void _edit(
+    ExpressionDocument Function(ExpressionDocument document) action, {
     bool preserveResult = false,
   }) {
-    final draft = state.fractionDraft;
-
-    if (draft != null) {
-      state = state.copyWith(
-        fractionDraft: draft.updateActiveDocument(document),
-        hasEvaluated: false,
-        clearResult: !preserveResult,
-        clearError: true,
-      );
-
-      return;
-    }
-
+    final nextDocument = action(state.document);
     state = state.copyWith(
-      document: document,
+      document: nextDocument,
       hasEvaluated: false,
       clearResult: !preserveResult,
       clearError: true,
     );
   }
 
-  ExpressionDocument get _activeDocument {
-    return state.fractionDraft?.activeDocument ?? state.document;
-  }
-
-  void startFraction() {
-    final currentDraft = state.fractionDraft;
-
-    if (currentDraft != null) {
-      final nextDraft = currentDraft.activePart == FractionPart.numerator
-          ? currentDraft.moveToDenominator()
-          : currentDraft.moveToNumerator();
-
-      state = state.copyWith(fractionDraft: nextDraft, clearError: true);
-
-      return;
-    }
-
-    final existingDocument = state.document;
-    final hasExistingExpression = !existingDocument.isEmpty;
-
-    final draft = FractionDraft(
-      numerator: hasExistingExpression
-          ? existingDocument
-          : ExpressionDocument.empty(),
-      denominator: ExpressionDocument.empty(),
-      activePart: hasExistingExpression
-          ? FractionPart.denominator
-          : FractionPart.numerator,
-    );
-
-    state = state.copyWith(
-      document: ExpressionDocument.empty(),
-      fractionDraft: draft,
-      hasEvaluated: false,
-      clearResult: true,
-      clearError: true,
-    );
-  }
-
-  void moveFractionUp() {
-    final draft = state.fractionDraft;
-
-    if (draft == null) {
-      return;
-    }
-
-    state = state.copyWith(
-      fractionDraft: draft.moveToNumerator(),
-      clearError: true,
-    );
-  }
-
-  void moveFractionDown() {
-    final draft = state.fractionDraft;
-
-    if (draft == null) {
-      return;
-    }
-
-    state = state.copyWith(
-      fractionDraft: draft.moveToDenominator(),
-      clearError: true,
-    );
-  }
-
-  ExpressionDocument _commitFraction(FractionDraft draft) {
-    return _editor.appendFraction(
-      state.document,
-      numerator: draft.numerator,
-      denominator: draft.denominator,
-    );
+  /// 套用一個只移動游標的導航操作，並清除錯誤。
+  void _move(ExpressionDocument Function(ExpressionDocument document) action) {
+    final nextDocument = action(state.document);
+    state = state.copyWith(document: nextDocument, clearError: true);
   }
 }

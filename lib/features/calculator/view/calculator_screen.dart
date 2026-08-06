@@ -13,31 +13,19 @@ class CalculatorScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(calculatorViewModelProvider);
-
     final viewModel = ref.read(calculatorViewModelProvider.notifier);
+    final serializer = ref.watch(treeExpressionTexSerializerProvider);
 
-    final serializer = ref.watch(expressionTexSerializerProvider);
-
-    final displayTex = serializer.serialize(
+    // TeX 完全由 Tree Serializer 產生；按 `=` 後游標不顯示。
+    final texResult = serializer.serialize(
       state.document,
-      fractionDraft: state.fractionDraft,
-      showCursor: false,
+      cursorVisible: !state.hasEvaluated,
     );
-
-    final displayTexWithCursor = serializer.serialize(
-      state.document,
-      fractionDraft: state.fractionDraft,
-      showCursor: true,
-    );
-
-    final activeDocument =
-        state.fractionDraft?.activeDocument ?? state.document;
-
-    final fallbackText = activeDocument.evaluationExpression;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Scientific Calculator'),
+        centerTitle: false,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
@@ -61,9 +49,8 @@ class CalculatorScreen extends ConsumerWidget {
                     child: Column(
                       children: [
                         NaturalMathDisplay(
-                          tex: displayTex,
-                          texWithCursor: displayTexWithCursor,
-                          fallbackText: fallbackText,
+                          tex: texResult.withHiddenCursor,
+                          texWithCursor: texResult.withVisibleCursor,
                           showCursor: !state.hasEvaluated,
                         ),
                         const Divider(height: 1),
@@ -83,26 +70,26 @@ class CalculatorScreen extends ConsumerWidget {
                       onSubtract: viewModel.inputSubtract,
                       onMultiply: viewModel.inputMultiply,
                       onDivide: viewModel.inputDivide,
-                      onOpenParenthesis: viewModel.inputOpenParenthesis,
-                      onCloseParenthesis: viewModel.inputCloseParenthesis,
+                      onOpenParenthesis: viewModel.inputOpenGroup,
+                      onCloseParenthesis: viewModel.inputCloseGroup,
                       onSquare: viewModel.inputSquare,
                       onPower: viewModel.inputPower,
                       onSquareRoot: viewModel.inputSquareRoot,
                       onSin: viewModel.inputSin,
                       onCos: viewModel.inputCos,
                       onTan: viewModel.inputTan,
-                      onLog: viewModel.inputLog,
+                      onLog: viewModel.inputLog10,
                       onLn: viewModel.inputLn,
                       onPi: viewModel.inputPi,
                       onEulerNumber: viewModel.inputEulerNumber,
                       onBackspace: viewModel.backspace,
                       onClear: viewModel.clear,
                       onCalculate: viewModel.calculate,
-                      onFraction: viewModel.startFraction,
-                      onMoveUp: viewModel.moveFractionUp,
-                      onMoveDown: viewModel.moveFractionDown,
-                      onMoveLeft: viewModel.moveCursorLeft,
-                      onMoveRight: viewModel.moveCursorRight,
+                      onFraction: viewModel.inputFraction,
+                      onMoveUp: viewModel.moveUp,
+                      onMoveDown: viewModel.moveDown,
+                      onMoveLeft: viewModel.moveLeft,
+                      onMoveRight: viewModel.moveRight,
                     ),
                   ),
                 ],

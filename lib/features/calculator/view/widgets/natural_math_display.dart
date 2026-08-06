@@ -1,18 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 
+/// 算式自然顯示區。
+///
+/// 職責（Phase 6 後）：
+/// - 在 visible / hidden TeX 間切換以產生閃爍游標。
+/// - 維持等寬 cursor layout（TeX 由 Tree Serializer 保證等寬）。
+/// - 水平捲動。
+/// - Renderer 失敗時顯示安全 fallback（空白或游標），不顯示錯誤訊息。
+///
+/// 不管理 cursor location，也不依賴 evaluationExpression。
 class NaturalMathDisplay extends StatefulWidget {
   const NaturalMathDisplay({
     required this.tex,
     required this.texWithCursor,
-    required this.fallbackText,
     required this.showCursor,
     super.key,
   });
 
   final String tex;
   final String texWithCursor;
-  final String fallbackText;
   final bool showCursor;
 
   @override
@@ -68,11 +75,10 @@ class _NaturalMathDisplayState extends State<NaturalMathDisplay>
                 fontSize: MediaQuery.sizeOf(context).width < 400 ? 28 : 36,
                 color: textColor,
               ),
+              // Renderer 失敗時顯示安全 fallback：僅游標或空白，不顯示錯誤。
               onErrorFallback: (_) {
-                final fallback = widget.fallbackText.trim();
-
                 return Text(
-                  fallback.isEmpty ? '|' : fallback,
+                  widget.showCursor ? '|' : '',
                   style: TextStyle(fontSize: 28, color: textColor),
                 );
               },
