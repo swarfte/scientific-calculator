@@ -31,17 +31,25 @@ class _SettingsDialog extends ConsumerWidget {
               'Theme',
               style: Theme.of(context).textTheme.titleSmall,
             ),
-            for (final preference in ThemePreference.values)
-              RadioListTile<ThemePreference>(
-                value: preference,
-                groupValue: current,
-                title: Text(preference.label),
-                onChanged: (value) {
-                  if (value != null) {
-                    notifier.set(value);
-                  }
-                },
+            // RadioGroup 集中管理 groupValue 與 onChanged（Flutter 3.32+ 後
+            // RadioListTile.groupValue / onChanged 已棄用）。
+            RadioGroup<ThemePreference>(
+              groupValue: current,
+              onChanged: (value) {
+                if (value != null) {
+                  notifier.set(value);
+                }
+              },
+              child: Column(
+                children: [
+                  for (final preference in ThemePreference.values)
+                    RadioListTile<ThemePreference>(
+                      value: preference,
+                      title: Text(preference.label),
+                    ),
+                ],
               ),
+            ),
             const Divider(),
             ListTile(
               dense: true,
@@ -74,7 +82,7 @@ class _VersionText extends ConsumerWidget {
 
     return asyncInfo.when(
       loading: () => const Text('—'),
-      error: (_, __) => const Text('—'),
+      error: (_, _) => const Text('—'),
       data: (info) => Text('${info.version} (build ${info.buildNumber})'),
     );
   }

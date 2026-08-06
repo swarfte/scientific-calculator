@@ -52,12 +52,16 @@ dev_dependencies:
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
+  # package. See that file for information on deactivating specific lint rules
+  # and activating additional ones.
   flutter_lints: ^6.0.0
 
   flutter_launcher_icons: ^0.14.3
   rename_app: ^1.6.6
+  # 測試 SharedPreferencesAsync 時需要直接註冊 in-memory 平台實作；
+  # 此套件為 shared_preferences 的 transitive dependency，這裡明確宣告為
+  # dev_dependency 以避免 pub upgrade 後被移除。
+  shared_preferences_platform_interface: ^2.4.2
 
 flutter_launcher_icons:
   android: true
