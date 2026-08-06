@@ -1,8 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
+
+import '../core/platform/platform_info.dart';
 
 /// 視窗「永遠置頂」(always on top / pin) 偏好是否已開啟。
 ///
@@ -24,8 +24,11 @@ class AlwaysOnTopStorage {
 }
 
 /// 目前是否為桌面平台（Web / 行動裝置不支援 always on top）。
+///
+/// 透過 [PlatformInfo.isDesktop] 判斷，避免在 Web 上存取 `dart:io` 的
+/// `Platform` 而擲回 `Unsupported operation`。
 final isDesktopPlatformProvider = Provider<bool>((ref) {
-  return Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+  return PlatformInfo.isDesktop;
 });
 
 /// 初始 always-on-top 偏好。
