@@ -2,7 +2,7 @@
 
 > 專案：`scientific_calculator`  
 > 架構：Flutter + Riverpod + MVVM + Editable Expression Tree  
-> 文件狀態：Phase 1、Phase 2、Phase 3、Phase 4 已完成，其餘階段待實作  
+> 文件狀態：Phase 1～Phase 5 已完成，其餘階段待實作  
 > 最後更新：2026-08-06
 
 ---
@@ -138,7 +138,7 @@ Phase 6  Riverpod MVVM、UI 接駁及移除舊架構
 [x] Phase 2：Tree Index 與結構化導航
 [x] Phase 3：Tree TeX Serializer 與游標顯示
 [x] Phase 4：Tree Expression Editor
-[ ] Phase 5：Validator、Compiler、Evaluator 與 Engine
+[x] Phase 5：Validator、Compiler、Evaluator 與 Engine
 [ ] Phase 6：Riverpod MVVM、UI 接駁及移除舊架構
 ```
 
@@ -993,7 +993,51 @@ test/features/calculator/service/tree_expression_editor_test.dart
 
 ## 狀態
 
-**待實作。**
+**已完成。**
+
+已建立以下結構（UI-free 平行層，未修改任何 production ViewModel/State/UI。
+為避免破壞仍在運作的舊字串版 evaluator/engine，Tree 版本以獨立檔名建立，
+舊 `expression_evaluator.dart` / `calculator_engine.dart` 保留至 Phase 6）：
+
+```text
+lib/core/errors/
+└── calculator_exception.dart           （擴充 overflow + undefinedAnswer）
+lib/features/calculator/model/expression/
+└── validation_failure.dart
+lib/features/calculator/service/
+├── expression_validator.dart           （新增）
+├── expression_compiler.dart            （新增，Pratt parser）
+├── tree_expression_evaluator.dart      （Tree 版，獨立檔名）
+└── tree_calculator_engine.dart         （Tree 版，獨立檔名）
+test/features/calculator/service/
+├── expression_validator_test.dart
+└── tree_calculator_engine_test.dart
+```
+
+### 實作重點
+
+- `ExpressionValidator` 遍歷 Tree 回傳第一個 `ValidationFailure`（type /
+  message / nodeId 或 sequenceId），不 throw。檢查空 root、operator 結尾、
+  非法連續 operator、NumberNode 只是 `.`、所有 composite node 的 child
+  sequence 非空、Ans 未定義等。
+- `ExpressionCompiler` 內建 Pratt parser 處理 operator 優先順序（先乘除後
+  加減、unary minus），直接把 Node 編譯成 `math_expressions` 的
+  `Expression`，不再轉回字串。
+- DEG/RAD 在 Compiler 階段處理：trig argument 在 DEG 模式乘上 `pi/180`，
+  反三角函數輸出乘上 `180/pi`（不再用 regex 改字串）。
+- `TreeExpressionEvaluator` 將 `NaN` 映射為 `domainError`、`Infinity` 映射
+  為 `overflow`、divide-by-zero 訊息映射為 `divisionByZero`。
+- `TreeCalculatorEngine` 協調 Validator -> Compiler -> Evaluator ->
+  ResultFormatter，回傳 `CalculationResult`，失敗時拋 `CalculatorException`。
+
+### 已知設計細節
+
+- Pratt parser 以 `_position` 追蹤目前 token；遞迴進入子 sequence（fraction
+  / group / power 的 child）時必須 save/restore `_position`，否則外層解析
+  進度會被破壞（例如 `(2+3)*4` 會丟失 `*4`）。
+- IEEE 除法對 `1/0` 回傳 `Infinity`，對 `log(0)` 回傳 `-Infinity`，因此
+  Evaluator 將這類情況映射為 `overflow`；測試以 `anyOf(divisionByZero,
+  overflow)` / `anyOf(domainError, overflow)` 接受這兩種合理歸類。
 
 ## 目標
 
@@ -1653,22 +1697,33 @@ Responsive layout
 
 # 6. 目前下一步
 
-目前完成 Phase 1、Phase 2、Phase 3 與 Phase 4，因此下一步應是：
+目前完成 Phase 1～Phase 5，因此下一步應是：
 
 ```text
-Phase 5：Validator、Compiler、Evaluator 與 Engine
+Phase 6：Riverpod MVVM、UI 接駁及移除舊架構
 ```
 
-具體順序：
+這是唯一需要集中修改多個 production files 的階段。建議 migration 順序：
 
-1. 建立 `expression_validator.dart`，檢查 root 非空、sequence 不以 operator 結尾、function/fraction/root/power/group child 非空等，回傳 domain-level `ValidationFailure`。
-2. 建立 `validation_failure.dart`（type / message / nodeId 或 sequenceId）。
-3. 建立 `expression_compiler.dart`，直接把 Node 編譯成可執行表示（建議 Pratt parser 或 shunting-yard 處理 operator precedence），不再轉回字串。
-4. 建立 `expression_evaluator.dart`，處理 DEG/RAD、log10/ln 語義、domain error。
-5. 建立 `calculator_engine.dart`，協調 validation -> compilation -> evaluation -> formatting。
-6. 為 validator / compiler / engine 建立 unit tests，涵蓋計劃必測案例（operator precedence、groups、fractions、roots、powers、DEG/RAD、log10/ln、constants、domain errors、division by zero、non-finite）。
-7. 執行 format、analyze 及 tests。
-8. 不要在 Phase 5 直接接駁 UI（保留舊 evaluator/engine 直到 Phase 6）。
+1. Providers 註冊 Tree services（`TreeExpressionEditor` /
+   `ExpressionNavigator` / `TreeExpressionTexSerializer` /
+   `ExpressionValidator` / `ExpressionCompiler` / `TreeExpressionEvaluator` /
+   `TreeCalculatorEngine`）。
+2. `CalculatorState` 改用 `TreeExpressionDocument`，移除
+   `evaluationExpression` / `texExpression` / `openParentheses` /
+   `evaluationCursorOffset` / `texCursorOffset` / `fractionDraft` /
+   `isEditingFraction`。
+3. ViewModel 所有 input method 改接 `TreeExpressionEditor`，左右上下改接
+   `ExpressionNavigator`。
+4. Screen 改接 `TreeExpressionTexSerializer` 產生 visible/hidden TeX。
+5. `calculate()` 改接 `TreeCalculatorEngine`。
+6. 執行所有 tests。
+7. 刪除舊字串 model：`expression_editor.dart`、`expression_tex_serializer.dart`、
+   `expression_evaluator.dart`、`calculator_engine.dart`（字串版）、
+   `fraction_draft.dart`，以及舊 `ExpressionDocument`。
+8. 再次執行 analyze / test。
+9. 將 Tree 版檔案改名為正式名稱（`tree_calculator_engine.dart` ->
+   `calculator_engine.dart` 等）。
 
 ---
 

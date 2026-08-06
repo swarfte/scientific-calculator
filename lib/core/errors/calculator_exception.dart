@@ -4,6 +4,8 @@ enum CalculatorErrorType {
   divisionByZero,
   domainError,
   nonFiniteResult,
+  overflow,
+  undefinedAnswer,
   unknown,
 }
 
