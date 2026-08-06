@@ -1,0 +1,12 @@
+math_keyboard
+↓ 使用者直觀輸入分數、根號、指數
+Math Expression
+↓ 轉換成可計算表示
+math_expressions
+↓ 計算結果
+flutter_math_fork
+↓ 顯示漂亮的 LaTeX 算式與結果
+GetX
+↓ 管理 DEG/RAD、結果、歷史、設定等狀態
+shared_preferences
+↓ 保存使用者設定
