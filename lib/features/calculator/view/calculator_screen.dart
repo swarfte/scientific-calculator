@@ -6,6 +6,7 @@ import 'widgets/calculator_keypad.dart';
 import 'widgets/mode_indicator.dart';
 import 'widgets/natural_math_display.dart';
 import 'widgets/result_display.dart';
+import 'widgets/settings_button.dart';
 
 class CalculatorScreen extends ConsumerWidget {
   const CalculatorScreen({super.key});
@@ -33,6 +34,10 @@ class CalculatorScreen extends ConsumerWidget {
               angleMode: state.angleMode,
               onPressed: viewModel.toggleAngleMode,
             ),
+          ),
+          const Padding(
+            padding: EdgeInsets.only(right: 4),
+            child: SettingsButton(),
           ),
         ],
       ),

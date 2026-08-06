@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'app.dart';
+import 'theme_settings.dart';
 import 'windows_state.dart';
 
 Future<void> bootstrap() async {
@@ -53,7 +54,16 @@ Future<void> bootstrap() async {
     });
   }
 
+  // 預先載入主題偏好，讓第一個畫面就套用上次選擇的主題，避免啟動閃爍。
+  final initialThemePreference = await ThemeSettingsStorage.load();
+
   runApp(
-    ProviderScope(child: WindowStateObserver(child: ScientificCalculatorApp())),
+    ProviderScope(
+      overrides: [
+        initialThemePreferenceProvider
+            .overrideWith((ref) => initialThemePreference),
+      ],
+      child: WindowStateObserver(child: ScientificCalculatorApp()),
+    ),
   );
 }
