@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:scientific_calculator/app/package_info_providers.dart';
 import 'package:scientific_calculator/app/theme_settings.dart';
 import 'package:scientific_calculator/features/calculator/view/widgets/settings_button.dart';
 import 'package:scientific_calculator/features/calculator/view/widgets/settings_dialog.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../../helpers/shared_preferences_test_helper.dart';
 
 /// 設定對話框 widget 測試。
 void main() {
-  setUp(SharedPreferences.setMockInitialValues);
+  setUp(setupSharedPreferencesForTest);
 
   Future<void> pumpDialog(
     WidgetTester tester, {
@@ -71,25 +73,22 @@ void main() {
       ],
     );
 
-    // 初始：System RadioListTile 為已選。
-    final systemRadio =
-        find.widgetWithText(RadioListTile<ThemePreference>, 'System');
-    expect(
-      tester.widget<RadioListTile<ThemePreference>>(systemRadio).groupValue,
-      ThemePreference.system,
-    );
+    // 群組值現在由 RadioGroup 祖先持有（RadioListTile.groupValue 已棄用）。
+    ThemePreference groupValue() => tester
+        .widget<RadioGroup<ThemePreference>>(
+          find.byType(RadioGroup<ThemePreference>),
+        )
+        .groupValue!;
+
+    // 初始：選中 System。
+    expect(groupValue(), ThemePreference.system);
 
     // 點 Light。
     await tester.tap(find.text('Light'));
     await tester.pump();
 
-    // 切換後：Light RadioListTile 為已選。
-    final lightRadio =
-        find.widgetWithText(RadioListTile<ThemePreference>, 'Light');
-    expect(
-      tester.widget<RadioListTile<ThemePreference>>(lightRadio).groupValue,
-      ThemePreference.light,
-    );
+    // 切換後：選中 Light。
+    expect(groupValue(), ThemePreference.light);
   });
 
   testWidgets('Close 按鈕關閉對話框', (tester) async {

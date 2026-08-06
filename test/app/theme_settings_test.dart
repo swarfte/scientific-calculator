@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:scientific_calculator/app/theme_settings.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../helpers/shared_preferences_test_helper.dart';
 
 /// 主題偏好持久化與 Notifier 測試。
 void main() {
@@ -28,7 +29,7 @@ void main() {
   });
 
   group('ThemeSettingsStorage', () {
-    setUp(SharedPreferences.setMockInitialValues);
+    setUp(setupSharedPreferencesForTest);
 
     test('未儲存時 load 回傳 system', () async {
       expect(await ThemeSettingsStorage.load(), ThemePreference.system);
@@ -47,7 +48,7 @@ void main() {
     late ProviderContainer container;
 
     setUp(() {
-      SharedPreferences.setMockInitialValues();
+      setupSharedPreferencesForTest();
       container = ProviderContainer();
     });
 
