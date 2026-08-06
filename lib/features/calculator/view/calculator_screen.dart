@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/always_on_top_settings.dart';
 import '../viewmodel/calculator_providers.dart';
 import 'widgets/calculator_keypad.dart';
 import 'widgets/mode_indicator.dart';
 import 'widgets/natural_math_display.dart';
+import 'widgets/pin_button.dart';
 import 'widgets/result_display.dart';
 import 'widgets/settings_button.dart';
 
@@ -23,11 +25,15 @@ class CalculatorScreen extends ConsumerWidget {
       cursorVisible: !state.hasEvaluated,
     );
 
+    // 釘選 (always-on-top) 只在桌面平台提供。
+    final isDesktop = ref.watch(isDesktopPlatformProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Calculator'),
         centerTitle: false,
         actions: [
+          if (isDesktop) const PinButton(),
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: ModeIndicator(

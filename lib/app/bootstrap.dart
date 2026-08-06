@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'app.dart';
+import 'always_on_top_settings.dart';
 import 'theme_settings.dart';
 import 'windows_state.dart';
 
@@ -12,6 +13,9 @@ Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final isDesktop = Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+
+  // 預先載入 always-on-top 偏好；桌面平台會在視窗顯示前套用，避免閃爍。
+  final initialAlwaysOnTop = await AlwaysOnTopStorage.load();
 
   if (isDesktop) {
     await windowManager.ensureInitialized();
@@ -49,6 +53,9 @@ Future<void> bootstrap() async {
         }
       }
 
+      // 視窗顯示前套用 always-on-top，確保從一開始就維持釘選狀態。
+      await windowManager.setAlwaysOnTop(initialAlwaysOnTop);
+
       await windowManager.show();
       await windowManager.focus();
     });
@@ -60,8 +67,10 @@ Future<void> bootstrap() async {
   runApp(
     ProviderScope(
       overrides: [
-        initialThemePreferenceProvider
-            .overrideWith((ref) => initialThemePreference),
+        initialThemePreferenceProvider.overrideWith(
+          (ref) => initialThemePreference,
+        ),
+        initialAlwaysOnTopProvider.overrideWith((ref) => initialAlwaysOnTop),
       ],
       child: WindowStateObserver(child: ScientificCalculatorApp()),
     ),

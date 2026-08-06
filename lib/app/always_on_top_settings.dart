@@ -14,7 +14,8 @@ class AlwaysOnTopStorage {
 
   /// 載入已儲存的偏好；未儲存時回傳 `false`。
   static Future<bool> load() async {
-    return _preferences.getBool(_key) ?? false;
+    final value = await _preferences.getBool(_key);
+    return value ?? false;
   }
 
   static Future<void> save(bool value) {
