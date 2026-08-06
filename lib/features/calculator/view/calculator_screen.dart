@@ -24,7 +24,7 @@ class CalculatorScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scientific Calculator'),
+        title: const Text('Calculator'),
         centerTitle: false,
         actions: [
           Padding(
