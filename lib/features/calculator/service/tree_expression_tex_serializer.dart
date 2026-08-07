@@ -4,10 +4,13 @@ import '../model/expression/node/constant_node.dart';
 import '../model/expression/node/fraction_node.dart';
 import '../model/expression/node/function_node.dart';
 import '../model/expression/node/group_node.dart';
+import '../model/expression/node/logarithm_node.dart';
+import '../model/expression/node/mixed_fraction_node.dart';
 import '../model/expression/node/number_node.dart';
 import '../model/expression/node/operator_node.dart';
 import '../model/expression/node/power_node.dart';
 import '../model/expression/node/root_node.dart';
+import '../model/expression/node/scientific_node.dart';
 import '../model/expression/node/sequence_node.dart';
 import '../model/expression/node_id.dart';
 import '../model/expression/tex_serialization_result.dart';
@@ -138,6 +141,24 @@ class TreeExpressionTexSerializer {
         );
       case PowerNode():
         return _serializePower(
+          node,
+          activeSequenceId: activeSequenceId,
+          cursor: cursor,
+        );
+      case LogarithmNode():
+        return _serializeLogarithm(
+          node,
+          activeSequenceId: activeSequenceId,
+          cursor: cursor,
+        );
+      case MixedFractionNode():
+        return _serializeMixedFraction(
+          node,
+          activeSequenceId: activeSequenceId,
+          cursor: cursor,
+        );
+      case ScientificNode():
+        return _serializeScientific(
           node,
           activeSequenceId: activeSequenceId,
           cursor: cursor,
@@ -282,6 +303,65 @@ class TreeExpressionTexSerializer {
       cursor: cursor,
     );
     return '{$baseTex}^{$exponentTex}';
+  }
+
+  String _serializeLogarithm(
+    LogarithmNode node, {
+    required NodeId activeSequenceId,
+    required CursorPosition cursor,
+  }) {
+    final baseTex = _serializeSequence(
+      node.base,
+      activeSequenceId: activeSequenceId,
+      cursor: cursor,
+    );
+    final argumentTex = _serializeSequence(
+      node.argument,
+      activeSequenceId: activeSequenceId,
+      cursor: cursor,
+    );
+    return '\\log_{$baseTex}\\left($argumentTex\\right)';
+  }
+
+  String _serializeMixedFraction(
+    MixedFractionNode node, {
+    required NodeId activeSequenceId,
+    required CursorPosition cursor,
+  }) {
+    final wholeTex = _serializeSequence(
+      node.whole,
+      activeSequenceId: activeSequenceId,
+      cursor: cursor,
+    );
+    final numeratorTex = _serializeSequence(
+      node.numerator,
+      activeSequenceId: activeSequenceId,
+      cursor: cursor,
+    );
+    final denominatorTex = _serializeSequence(
+      node.denominator,
+      activeSequenceId: activeSequenceId,
+      cursor: cursor,
+    );
+    return '$wholeTex\\frac{$numeratorTex}{$denominatorTex}';
+  }
+
+  String _serializeScientific(
+    ScientificNode node, {
+    required NodeId activeSequenceId,
+    required CursorPosition cursor,
+  }) {
+    final mantissaTex = _serializeSequence(
+      node.mantissa,
+      activeSequenceId: activeSequenceId,
+      cursor: cursor,
+    );
+    final exponentTex = _serializeSequence(
+      node.exponent,
+      activeSequenceId: activeSequenceId,
+      cursor: cursor,
+    );
+    return '$mantissaTex\\,E\\,$exponentTex';
   }
 
   String _serializeGroup(

@@ -4,10 +4,13 @@ import '../model/expression/node/constant_node.dart';
 import '../model/expression/node/fraction_node.dart';
 import '../model/expression/node/function_node.dart';
 import '../model/expression/node/group_node.dart';
+import '../model/expression/node/logarithm_node.dart';
+import '../model/expression/node/mixed_fraction_node.dart';
 import '../model/expression/node/number_node.dart';
 import '../model/expression/node/operator_node.dart';
 import '../model/expression/node/power_node.dart';
 import '../model/expression/node/root_node.dart';
+import '../model/expression/node/scientific_node.dart';
 import '../model/expression/node/sequence_node.dart';
 import '../model/expression/node_id.dart';
 import '../model/expression/sequence_role.dart';
@@ -489,6 +492,159 @@ class TreeExpressionEditor {
     );
   }
 
+  // ---- 對數 / 帶分數 / 科學記號 ---------------------------------------------
+
+  /// 輸入任意底數對數 `log_xy`。
+  ///
+  /// - 左方為 NumberNode：提升為 argument，游標進入（空的）base。
+  /// - 空位置：建立空 LogarithmNode，游標進入 argument。
+  TreeExpressionDocument insertLogarithm(TreeExpressionDocument document) {
+    final index = TreeIndex(document.root);
+    final cursor = index.clampCursor(document.cursor);
+    final sequence = index.findSequence(cursor.sequenceId);
+    if (sequence == null) {
+      return document;
+    }
+
+    final offset = _gapOffset(cursor, sequence);
+
+    if (offset > 0 && sequence.children[offset - 1] is NumberNode) {
+      final left = sequence.children[offset - 1] as NumberNode;
+      final node = LogarithmNode(
+        id: NodeId.generate(),
+        base: SequenceNode.empty(),
+        argument: SequenceNode(id: NodeId.generate(), children: [left]),
+      );
+      final newSequence = sequence
+          .removeAt(offset - 1)
+          .insert(offset - 1, node);
+      return _commit(
+        index,
+        document,
+        newSequence,
+        CursorPosition(sequenceId: node.base.id, nodeOffset: 0),
+      );
+    }
+
+    final node = LogarithmNode.empty();
+    final newSequence = sequence.insert(offset, node);
+    return _commit(
+      index,
+      document,
+      newSequence,
+      CursorPosition(sequenceId: node.argument.id, nodeOffset: 0),
+    );
+  }
+
+  /// 輸入底數預設為 2 的對數（`log₂`），游標進入 argument。
+  TreeExpressionDocument insertLogarithmBase2(
+    TreeExpressionDocument document,
+  ) {
+    final index = TreeIndex(document.root);
+    final cursor = index.clampCursor(document.cursor);
+    final sequence = index.findSequence(cursor.sequenceId);
+    if (sequence == null) {
+      return document;
+    }
+
+    final offset = _gapOffset(cursor, sequence);
+    final node = LogarithmNode.withDefaultBase(2);
+    final newSequence = sequence.insert(offset, node);
+    return _commit(
+      index,
+      document,
+      newSequence,
+      CursorPosition(sequenceId: node.argument.id, nodeOffset: 0),
+    );
+  }
+
+  /// 輸入帶分數 `a b/c`。
+  ///
+  /// - 左方為 NumberNode：提升為 whole，游標進入 numerator。
+  /// - 空位置：建立空 MixedFractionNode，游標進入 whole。
+  TreeExpressionDocument insertMixedFraction(
+    TreeExpressionDocument document,
+  ) {
+    final index = TreeIndex(document.root);
+    final cursor = index.clampCursor(document.cursor);
+    final sequence = index.findSequence(cursor.sequenceId);
+    if (sequence == null) {
+      return document;
+    }
+
+    final offset = _gapOffset(cursor, sequence);
+
+    if (offset > 0 && sequence.children[offset - 1] is NumberNode) {
+      final left = sequence.children[offset - 1] as NumberNode;
+      final node = MixedFractionNode(
+        id: NodeId.generate(),
+        whole: SequenceNode(id: NodeId.generate(), children: [left]),
+        numerator: SequenceNode.empty(),
+        denominator: SequenceNode.empty(),
+      );
+      final newSequence = sequence
+          .removeAt(offset - 1)
+          .insert(offset - 1, node);
+      return _commit(
+        index,
+        document,
+        newSequence,
+        CursorPosition(sequenceId: node.numerator.id, nodeOffset: 0),
+      );
+    }
+
+    final node = MixedFractionNode.empty();
+    final newSequence = sequence.insert(offset, node);
+    return _commit(
+      index,
+      document,
+      newSequence,
+      CursorPosition(sequenceId: node.whole.id, nodeOffset: 0),
+    );
+  }
+
+  /// 輸入科學記號 `Exp`（mantissa × 10^exponent）。
+  ///
+  /// - 左方為 NumberNode：提升為 mantissa，建立空 exponent，游標進 exponent。
+  /// - 空位置：建立空 mantissa 與 exponent，游標進 mantissa。
+  TreeExpressionDocument insertScientific(TreeExpressionDocument document) {
+    final index = TreeIndex(document.root);
+    final cursor = index.clampCursor(document.cursor);
+    final sequence = index.findSequence(cursor.sequenceId);
+    if (sequence == null) {
+      return document;
+    }
+
+    final offset = _gapOffset(cursor, sequence);
+
+    if (offset > 0 && sequence.children[offset - 1] is NumberNode) {
+      final left = sequence.children[offset - 1] as NumberNode;
+      final node = ScientificNode(
+        id: NodeId.generate(),
+        mantissa: SequenceNode(id: NodeId.generate(), children: [left]),
+        exponent: SequenceNode.empty(),
+      );
+      final newSequence = sequence
+          .removeAt(offset - 1)
+          .insert(offset - 1, node);
+      return _commit(
+        index,
+        document,
+        newSequence,
+        CursorPosition(sequenceId: node.exponent.id, nodeOffset: 0),
+      );
+    }
+
+    final node = ScientificNode.empty();
+    final newSequence = sequence.insert(offset, node);
+    return _commit(
+      index,
+      document,
+      newSequence,
+      CursorPosition(sequenceId: node.mantissa.id, nodeOffset: 0),
+    );
+  }
+
   // ---- Backspace ----------------------------------------------------------
 
   /// 退格。
@@ -693,6 +849,60 @@ class TreeExpressionEditor {
       }
     }
 
+    // 規則：ScientificNode exponent 空白開頭 -> 解除保留 mantissa。
+    if (owner is ScientificNode &&
+        role == SequenceRole.scientificExponent) {
+      final unwrapped = _unwrapScientificKeepMantissa(
+        index,
+        document,
+        owner,
+        ownerIndex,
+        parentSequence,
+      );
+      if (unwrapped != null) {
+        return unwrapped;
+      }
+    }
+
+    // 規則：MixedFractionNode 空白開頭依角色降級。
+    if (owner is MixedFractionNode) {
+      final downgraded = _downgradeMixedFraction(
+        index,
+        document,
+        owner,
+        ownerIndex,
+        parentSequence,
+        role,
+      );
+      if (downgraded != null) {
+        return downgraded;
+      }
+    }
+
+    // 規則：LogarithmNode argument 空 -> 移除整個 node；base 空 -> 退到 argument。
+    if (owner is LogarithmNode) {
+      if (role == SequenceRole.logArgument) {
+        return _removeOwnerAndCommit(
+          index,
+          document,
+          parentSequence,
+          ownerIndex,
+          CursorPosition(
+            sequenceId: parentSequence.id,
+            nodeOffset: ownerIndex,
+          ),
+        );
+      }
+      if (role == SequenceRole.logBase) {
+        return document.copyWith(
+          cursor: CursorPosition(
+            sequenceId: owner.argument.id,
+            nodeOffset: 0,
+          ),
+        );
+      }
+    }
+
     // 規則 6：function argument 空 -> 移除 FunctionNode，回到 parent 前方。
     if (owner is FunctionNode) {
       return _removeOwnerAndCommit(
@@ -772,7 +982,78 @@ class TreeExpressionEditor {
     return null;
   }
 
-  /// 從 parent sequence 移除 owner node 並 commit。
+  /// 解除 ScientificNode：若 mantissa 非空且只有單一 NumberNode，將該
+  /// NumberNode 放回 parent sequence 原 owner 位置；否則回傳 null 走 fallback。
+  TreeExpressionDocument? _unwrapScientificKeepMantissa(
+    TreeIndex index,
+    TreeExpressionDocument document,
+    ScientificNode owner,
+    int ownerIndex,
+    SequenceNode parentSequence,
+  ) {
+    if (owner.mantissa.children.length == 1 &&
+        owner.mantissa.children.first is NumberNode) {
+      final mantissa = owner.mantissa.children.first as NumberNode;
+      final newSequence = parentSequence.replaceAt(ownerIndex, mantissa);
+      const rewriter = TreeRewriter();
+      final newRoot = rewriter.replaceSequence(
+        index,
+        parentSequence.id,
+        newSequence,
+      );
+      return document.copyWith(
+        root: newRoot,
+        cursor: CursorPosition(
+          sequenceId: parentSequence.id,
+          nodeOffset: ownerIndex + 1,
+        ),
+      );
+    }
+    return null;
+  }
+
+  /// 帶分數降級：denominator 空 -> 退到 numerator 末端；numerator 空 -> 退到
+  /// whole 末端；whole 空 -> 移除整個 node。回傳 `null` 表示不適用（例如
+  /// 各 sequence 非空），由呼叫端走 fallback。
+  TreeExpressionDocument? _downgradeMixedFraction(
+    TreeIndex index,
+    TreeExpressionDocument document,
+    MixedFractionNode owner,
+    int ownerIndex,
+    SequenceNode parentSequence,
+    SequenceRole role,
+  ) {
+    if (role == SequenceRole.mixedDenominator) {
+      return document.copyWith(
+        cursor: CursorPosition(
+          sequenceId: owner.numerator.id,
+          nodeOffset: owner.numerator.children.length,
+        ),
+      );
+    }
+    if (role == SequenceRole.mixedNumerator) {
+      return document.copyWith(
+        cursor: CursorPosition(
+          sequenceId: owner.whole.id,
+          nodeOffset: owner.whole.children.length,
+        ),
+      );
+    }
+    // whole 空白開頭 -> 移除整個 node。
+    if (role == SequenceRole.mixedWhole) {
+      return _removeOwnerAndCommit(
+        index,
+        document,
+        parentSequence,
+        ownerIndex,
+        CursorPosition(
+          sequenceId: parentSequence.id,
+          nodeOffset: ownerIndex,
+        ),
+      );
+    }
+    return null;
+  }
   TreeExpressionDocument _removeOwnerAndCommit(
     TreeIndex index,
     TreeExpressionDocument document,

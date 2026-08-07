@@ -4,10 +4,13 @@ import '../model/expression/node/constant_node.dart';
 import '../model/expression/node/fraction_node.dart';
 import '../model/expression/node/function_node.dart';
 import '../model/expression/node/group_node.dart';
+import '../model/expression/node/logarithm_node.dart';
+import '../model/expression/node/mixed_fraction_node.dart';
 import '../model/expression/node/number_node.dart';
 import '../model/expression/node/operator_node.dart';
 import '../model/expression/node/power_node.dart';
 import '../model/expression/node/root_node.dart';
+import '../model/expression/node/scientific_node.dart';
 import '../model/expression/node/sequence_node.dart';
 import '../model/expression/validation_failure.dart';
 
@@ -121,6 +124,65 @@ class ExpressionValidator {
           final expFailure = _validateRequiredSequence(
             child.exponent,
             argumentName: '指數',
+            hasAnswer: hasAnswer,
+          );
+          if (expFailure != null) {
+            return expFailure;
+          }
+        case LogarithmNode():
+          final baseFailure = _validateRequiredSequence(
+            child.base,
+            argumentName: '對數底數',
+            hasAnswer: hasAnswer,
+          );
+          if (baseFailure != null) {
+            return baseFailure;
+          }
+          final argFailure = _validateRequiredSequence(
+            child.argument,
+            argumentName: '對數內容',
+            hasAnswer: hasAnswer,
+          );
+          if (argFailure != null) {
+            return argFailure;
+          }
+        case MixedFractionNode():
+          final wholeFailure = _validateRequiredSequence(
+            child.whole,
+            argumentName: '帶分數整數部分',
+            hasAnswer: hasAnswer,
+          );
+          if (wholeFailure != null) {
+            return wholeFailure;
+          }
+          final numFailure = _validateRequiredSequence(
+            child.numerator,
+            argumentName: '帶分數分子',
+            hasAnswer: hasAnswer,
+          );
+          if (numFailure != null) {
+            return numFailure;
+          }
+          final denomFailure = _validateRequiredSequence(
+            child.denominator,
+            argumentName: '帶分數分母',
+            hasAnswer: hasAnswer,
+          );
+          if (denomFailure != null) {
+            return denomFailure;
+          }
+        case ScientificNode():
+          final mantissaFailure = _validateRequiredSequence(
+            child.mantissa,
+            argumentName: '科學記號尾數',
+            hasAnswer: hasAnswer,
+          );
+          if (mantissaFailure != null) {
+            return mantissaFailure;
+          }
+          final expFailure = _validateRequiredSequence(
+            child.exponent,
+            argumentName: '科學記號指數',
             hasAnswer: hasAnswer,
           );
           if (expFailure != null) {

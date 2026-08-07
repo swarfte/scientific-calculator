@@ -4,10 +4,13 @@ import 'node/constant_node.dart';
 import 'node/fraction_node.dart';
 import 'node/function_node.dart';
 import 'node/group_node.dart';
+import 'node/logarithm_node.dart';
+import 'node/mixed_fraction_node.dart';
 import 'node/number_node.dart';
 import 'node/operator_node.dart';
 import 'node/power_node.dart';
 import 'node/root_node.dart';
+import 'node/scientific_node.dart';
 import 'node/sequence_node.dart';
 import 'node_id.dart';
 import 'sequence_role.dart';
@@ -95,6 +98,31 @@ class TreeIndex {
         return [
           (sequence: node.base, role: SequenceRole.powerBase),
           (sequence: node.exponent, role: SequenceRole.powerExponent),
+        ];
+      case LogarithmNode():
+        return [
+          (sequence: node.base, role: SequenceRole.logBase),
+          (sequence: node.argument, role: SequenceRole.logArgument),
+        ];
+      case MixedFractionNode():
+        return [
+          (sequence: node.whole, role: SequenceRole.mixedWhole),
+          (sequence: node.numerator, role: SequenceRole.mixedNumerator),
+          (
+            sequence: node.denominator,
+            role: SequenceRole.mixedDenominator,
+          ),
+        ];
+      case ScientificNode():
+        return [
+          (
+            sequence: node.mantissa,
+            role: SequenceRole.scientificMantissa,
+          ),
+          (
+            sequence: node.exponent,
+            role: SequenceRole.scientificExponent,
+          ),
         ];
       case NumberNode():
       case OperatorNode():

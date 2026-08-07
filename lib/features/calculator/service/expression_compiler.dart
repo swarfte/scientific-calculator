@@ -8,10 +8,13 @@ import '../model/expression/node/constant_node.dart';
 import '../model/expression/node/fraction_node.dart';
 import '../model/expression/node/function_node.dart';
 import '../model/expression/node/group_node.dart';
+import '../model/expression/node/logarithm_node.dart';
+import '../model/expression/node/mixed_fraction_node.dart';
 import '../model/expression/node/number_node.dart';
 import '../model/expression/node/operator_node.dart';
 import '../model/expression/node/power_node.dart';
 import '../model/expression/node/root_node.dart';
+import '../model/expression/node/scientific_node.dart';
 import '../model/expression/node/sequence_node.dart';
 
 /// 將 Expression Tree 編譯成 `math_expressions` 的 [Expression]。
@@ -181,6 +184,24 @@ class _PrattParser {
         return _compileRoot(node);
       case PowerNode():
         return Power(parseSequence(node.base), parseSequence(node.exponent));
+      case LogarithmNode():
+        // log_base(argument) = ln(argument) / ln(base)
+        return Divide(
+          Ln(parseSequence(node.argument)),
+          Ln(parseSequence(node.base)),
+        );
+      case MixedFractionNode():
+        // whole + numerator / denominator
+        return Plus(
+          parseSequence(node.whole),
+          Divide(parseSequence(node.numerator), parseSequence(node.denominator)),
+        );
+      case ScientificNode():
+        // mantissa × 10^exponent
+        return Times(
+          parseSequence(node.mantissa),
+          Power(Number(10), parseSequence(node.exponent)),
+        );
       case GroupNode():
         return parseSequence(node.content);
       case SequenceNode():

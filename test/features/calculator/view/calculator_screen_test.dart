@@ -5,6 +5,15 @@ import 'package:scientific_calculator/features/calculator/view/calculator_screen
 import 'package:scientific_calculator/features/calculator/view/widgets/calculator_key.dart';
 import 'package:scientific_calculator/features/calculator/view/widgets/result_display.dart';
 
+/// 以 [CalculatorKey.label]（語義標籤）查找按鍵，用於複合圖標按鍵（如
+/// `a/b`、`x²`）——它們的視覺內容由多個 Widget 組成，無法以單一 find.text
+/// 定位，但 [CalculatorKey.label] 恆為字串。
+Finder findByKeyLabel(String label) {
+  return find.byWidgetPredicate(
+    (widget) => widget is CalculatorKey && widget.label == label,
+  );
+}
+
 /// Phase 6 widget test：驗證 CalculatorScreen 的核心 UI 元素與按鍵互動。
 void main() {
   testWidgets('result display 存在且初始為 0', (tester) async {
@@ -39,10 +48,10 @@ void main() {
     expect(find.text('sin'), findsOneWidget);
     expect(find.text('log₁₀'), findsOneWidget);
 
-    // 結構鍵。
-    expect(find.text('a/b'), findsOneWidget);
+    // 結構鍵（純文字圖標用 find.text，複合圖標用 CalculatorKey.label 比對）。
+    expect(findByKeyLabel('a/b'), findsOneWidget);
     expect(find.text('√'), findsOneWidget);
-    expect(find.text('x²'), findsOneWidget);
+    expect(findByKeyLabel('x²'), findsOneWidget);
 
     // 動作鍵。
     expect(find.text('AC'), findsOneWidget);

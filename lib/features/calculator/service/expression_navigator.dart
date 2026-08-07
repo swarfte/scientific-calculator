@@ -149,6 +149,17 @@ class ExpressionNavigator {
       (SequenceRole.powerExponent, false) => SequenceRole.powerBase,
       (SequenceRole.rootRadicand, true) => SequenceRole.rootDegree,
       (SequenceRole.rootDegree, false) => SequenceRole.rootRadicand,
+      (SequenceRole.logArgument, true) => SequenceRole.logBase,
+      (SequenceRole.logBase, false) => SequenceRole.logArgument,
+      (SequenceRole.scientificExponent, true) =>
+        SequenceRole.scientificMantissa,
+      (SequenceRole.scientificMantissa, false) =>
+        SequenceRole.scientificExponent,
+      // 帶分數：whole ↔ numerator ↔ denominator 三層相鄰移動。
+      (SequenceRole.mixedWhole, false) => SequenceRole.mixedNumerator,
+      (SequenceRole.mixedNumerator, true) => SequenceRole.mixedWhole,
+      (SequenceRole.mixedNumerator, false) => SequenceRole.mixedDenominator,
+      (SequenceRole.mixedDenominator, true) => SequenceRole.mixedNumerator,
       _ => null,
     };
 
