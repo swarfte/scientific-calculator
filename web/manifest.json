@@ -1,6 +1,6 @@
 {
-     "name": "Scientific Calculator",
-     "short_name": "Scientific Calculator",
+     "name": "Sci Calc",
+     "short_name": "Sci Calc",
      "start_url": ".",
      "display": "standalone",
      "background_color": "#0175C2",
