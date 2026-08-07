@@ -66,6 +66,11 @@ class CalculatorKeypad extends StatelessWidget {
       children: [
         _row([
           _key('a/b', onFraction, CalculatorKeyStyle.function),
+          _key(
+            'a b/c',
+            onFraction,
+            CalculatorKeyStyle.function,
+          ), // need to implement
           _key('↑', onMoveUp, CalculatorKeyStyle.function),
           _key('↓', onMoveDown, CalculatorKeyStyle.function),
           _key('←', onMoveLeft, CalculatorKeyStyle.function),
@@ -75,45 +80,84 @@ class CalculatorKeypad extends StatelessWidget {
           _key('sin', onSin, CalculatorKeyStyle.function),
           _key('cos', onCos, CalculatorKeyStyle.function),
           _key('tan', onTan, CalculatorKeyStyle.function),
-          _key('DEL', onBackspace, CalculatorKeyStyle.destructive),
-          _key('AC', onClear, CalculatorKeyStyle.destructive),
+          _key(
+            'sin-1',
+            onSin,
+            CalculatorKeyStyle.function,
+          ), // need to implement
+          _key(
+            'cos-1',
+            onCos,
+            CalculatorKeyStyle.function,
+          ), // need to implement
+          _key(
+            'tan-1',
+            onTan,
+            CalculatorKeyStyle.function,
+          ), // need to implement
         ]),
         _row([
-          _key('log₁₀', onLog, CalculatorKeyStyle.function),
+          _key(
+            'logxY',
+            onLog,
+            CalculatorKeyStyle.function,
+          ), // need to implement
           _key('ln', onLn, CalculatorKeyStyle.function),
-          _key('√', onSquareRoot, CalculatorKeyStyle.function),
-          _key('x²', onSquare, CalculatorKeyStyle.function),
-          _key('xʸ', onPower, CalculatorKeyStyle.function),
-        ]),
-        _row([
-          _key('(', onOpenParenthesis, CalculatorKeyStyle.function),
-          _key(')', onCloseParenthesis, CalculatorKeyStyle.function),
 
           _key('π', onPi, CalculatorKeyStyle.function),
-          _key('÷', onDivide, CalculatorKeyStyle.operator),
+          _key('e', onEulerNumber, CalculatorKeyStyle.function),
+          _key('√', onSquareRoot, CalculatorKeyStyle.function),
+          _key(
+            'x√',
+            onSquareRoot,
+            CalculatorKeyStyle.function,
+          ), // need to implement
+        ]),
+        _row([
+          _key('log2', onLog, CalculatorKeyStyle.function), // need to implement
+
+          _key('log₁₀', onLog, CalculatorKeyStyle.function),
+
+          _key('(', onOpenParenthesis, CalculatorKeyStyle.function),
+          _key(')', onCloseParenthesis, CalculatorKeyStyle.function),
+          _key('x²', onSquare, CalculatorKeyStyle.function),
+          _key('xʸ', onPower, CalculatorKeyStyle.function),
         ]),
         _row([
           _digit('7'),
           _digit('8'),
           _digit('9'),
-          _key('×', onMultiply, CalculatorKeyStyle.operator),
+          _key('DEL', onBackspace, CalculatorKeyStyle.destructive),
+          _key('AC', onClear, CalculatorKeyStyle.destructive),
         ]),
         _row([
           _digit('4'),
           _digit('5'),
           _digit('6'),
-          _key('−', onSubtract, CalculatorKeyStyle.operator),
+          _key('×', onMultiply, CalculatorKeyStyle.operator),
+          _key('÷', onDivide, CalculatorKeyStyle.operator),
         ]),
         _row([
           _digit('1'),
           _digit('2'),
           _digit('3'),
           _key('+', onAdd, CalculatorKeyStyle.operator),
+          _key('−', onSubtract, CalculatorKeyStyle.operator),
         ]),
         _row([
           _digit('0'),
           _key('.', onDecimal, CalculatorKeyStyle.normal),
-          _key('e', onEulerNumber, CalculatorKeyStyle.function),
+          _key(
+            'Exp',
+            onDecimal,
+            CalculatorKeyStyle.normal,
+          ), // need to implement
+          _key(
+            'Ans',
+            onDecimal,
+            CalculatorKeyStyle.normal,
+          ), // need to implement
+
           _key('=', onCalculate, CalculatorKeyStyle.equals),
         ]),
       ],
