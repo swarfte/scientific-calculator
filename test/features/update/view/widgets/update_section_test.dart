@@ -75,8 +75,8 @@ void main() {
       client: client,
     );
 
-    expect(find.text('Update'), findsOneWidget);
-    expect(find.text('Check for updates'), findsOneWidget);
+    expect(find.text('更新'), findsOneWidget);
+    expect(find.text('檢查更新'), findsOneWidget);
     // 背景檢查由 UpdateCheckStarter 觸發，光是渲染區塊不該打 API。
     expect(client.callCount, 0);
   });
@@ -89,16 +89,16 @@ void main() {
       client: client,
     );
 
-    await tester.tap(find.text('Check for updates'));
+    await tester.tap(find.text('檢查更新'));
     await tester.pumpAndSettle();
 
     expect(client.callCount, 1);
-    expect(find.text('Update available: 2026.8.7 (build 6)'), findsOneWidget);
+    expect(find.text('有新版本：2026.8.7 (build 6)'), findsOneWidget);
     expect(
       find.text('scientific_calculator-Windows-Setup.exe · 11.0 MB'),
       findsOneWidget,
     );
-    expect(find.text('Download & install'), findsOneWidget);
+    expect(find.text('下載並安裝'), findsOneWidget);
   });
 
   testWidgets('檢查中顯示進度指示', (tester) async {
@@ -107,7 +107,7 @@ void main() {
       state: const UpdateState(checkPhase: UpdateCheckPhase.checking),
     );
 
-    expect(find.text('Checking for updates…'), findsOneWidget);
+    expect(find.text('正在檢查更新…'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 
@@ -117,8 +117,8 @@ void main() {
       state: const UpdateState(checkPhase: UpdateCheckPhase.upToDate),
     );
 
-    expect(find.text("You're on the latest version"), findsOneWidget);
-    expect(find.text('Check again'), findsOneWidget);
+    expect(find.text('已是最新版本'), findsOneWidget);
+    expect(find.text('重新檢查'), findsOneWidget);
   });
 
   testWidgets('檢查失敗時顯示訊息、重試與 Release 頁面連結', (tester) async {
@@ -131,8 +131,8 @@ void main() {
     );
 
     expect(find.text('無法連線到 GitHub，請檢查網路連線'), findsOneWidget);
-    expect(find.text('Retry'), findsOneWidget);
-    expect(find.text('Open release page'), findsOneWidget);
+    expect(find.text('重試'), findsOneWidget);
+    expect(find.text('開啟發佈頁面'), findsOneWidget);
   });
 
   testWidgets('下載中顯示進度條與已下載大小', (tester) async {
@@ -169,7 +169,7 @@ void main() {
     );
 
     expect(
-      find.text('Downloaded — follow the installer to finish.'),
+      find.text('下載完成 — 請依照安裝程式完成安裝。'),
       findsOneWidget,
     );
     expect(find.text(r'C:\Users\me\Downloads\setup.exe'), findsOneWidget);
@@ -190,9 +190,9 @@ void main() {
 
     expect(find.text('作業系統拒絕開啟安裝檔'), findsOneWidget);
     expect(find.text(r'C:\Users\me\Downloads\setup.exe'), findsOneWidget);
-    expect(find.text('Open installer'), findsOneWidget);
+    expect(find.text('開啟安裝程式'), findsOneWidget);
     // 檔案已在本機，不該叫使用者重新下載。
-    expect(find.text('Retry'), findsNothing);
+    expect(find.text('重試'), findsNothing);
   });
 
   testWidgets('有新版本但這個 Release 沒有本平台安裝檔時只提供 Release 頁面', (tester) async {
@@ -205,22 +205,22 @@ void main() {
     );
 
     expect(
-      find.text('No installer for this platform in that release.'),
+      find.text('此版本沒有對應此平台的安裝檔。'),
       findsOneWidget,
     );
-    expect(find.text('Open release page'), findsOneWidget);
-    expect(find.text('Download & install'), findsNothing);
+    expect(find.text('開啟發佈頁面'), findsOneWidget);
+    expect(find.text('下載並安裝'), findsNothing);
   });
 
   testWidgets('不支援的平台不提供檢查，只提供 Release 頁面', (tester) async {
     await pumpSection(tester, platform: UpdatePlatform.unsupported);
 
     expect(
-      find.text('Automatic updates are not available on this platform.'),
+      find.text('此平台不支援自動更新。'),
       findsOneWidget,
     );
-    expect(find.text('Open release page'), findsOneWidget);
-    expect(find.text('Check for updates'), findsNothing);
+    expect(find.text('開啟發佈頁面'), findsOneWidget);
+    expect(find.text('檢查更新'), findsNothing);
   });
 
   testWidgets('macOS 的按鈕文字為 Download & open', (tester) async {
@@ -234,7 +234,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Download & open'), findsOneWidget);
+    expect(find.text('下載並開啟'), findsOneWidget);
     expect(
       find.text('scientific_calculator.dmg · 19.5 MB'),
       findsOneWidget,

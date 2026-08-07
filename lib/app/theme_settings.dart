@@ -15,9 +15,9 @@ enum ThemePreference {
 
   String get label {
     return switch (this) {
-      ThemePreference.system => 'System',
-      ThemePreference.light => 'Light',
-      ThemePreference.dark => 'Dark',
+      ThemePreference.system => '跟隨系統',
+      ThemePreference.light => '淺色',
+      ThemePreference.dark => '深色',
     };
   }
 

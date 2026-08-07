@@ -15,8 +15,8 @@ enum ResultFormatPreference {
 
   String get label {
     return switch (this) {
-      ResultFormatPreference.decimal => 'DEC',
-      ResultFormatPreference.fraction => 'FRAC',
+      ResultFormatPreference.decimal => '小數',
+      ResultFormatPreference.fraction => '分數',
     };
   }
 

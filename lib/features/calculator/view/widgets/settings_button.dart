@@ -20,7 +20,7 @@ class SettingsButton extends ConsumerWidget {
         isLabelVisible: hasUpdate,
         child: const Icon(Icons.settings),
       ),
-      tooltip: hasUpdate ? 'Settings — update available' : 'Settings',
+      tooltip: hasUpdate ? '設定 — 有新版本' : '設定',
       onPressed: () => showSettingsDialog(context),
     );
   }
