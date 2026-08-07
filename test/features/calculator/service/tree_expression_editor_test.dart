@@ -501,8 +501,8 @@ void main() {
       doc = editor.insertDigit(doc, '3');
       doc = editor.insertDigit(doc, '0');
 
-      // cursor 在 argument 末端，向右離開 function。
-      doc = navigator.moveRight(doc);
+      // cursor 在 NumberNode 30 文字末端；單次向右即合併隱形中間步、
+      // 直接離開 function 至 root。
       doc = navigator.moveRight(doc);
 
       expect(doc.cursor.sequenceId, doc.root.id);

@@ -58,7 +58,52 @@ void main() {
         ),
       );
       final tex = visibleTex(doc);
-      expect(tex, contains(r'6\times3\div2'));
+      // 巨集後以空格分隔（見 _operatorTex 註釋）。
+      expect(tex, contains(r'6\times 3\div 2'));
+    });
+
+    test('operators 接常數 e 不黏成未定義巨集（回歸）', () {
+      for (final op in [
+        ExpressionOperator.multiply,
+        ExpressionOperator.divide,
+      ]) {
+        final doc = docOf(
+          SequenceNode(
+            id: NodeId.generate(),
+            children: [
+              NumberNode.create('13'),
+              OperatorNode.create(op),
+              ConstantNode.create(MathConstant.e),
+            ],
+          ),
+        );
+        final tex = hiddenTex(doc);
+        switch (op) {
+          case ExpressionOperator.multiply:
+            expect(tex, contains(r'13\times e'));
+            expect(tex, isNot(contains(r'\timese')));
+          case ExpressionOperator.divide:
+            expect(tex, contains(r'13\div e'));
+            expect(tex, isNot(contains(r'\dive')));
+          default:
+            fail('unexpected operator $op');
+        }
+      }
+    });
+
+    test('pi 接常數 e 不黏成未定義巨集（回歸）', () {
+      final doc = docOf(
+        SequenceNode(
+          id: NodeId.generate(),
+          children: [
+            ConstantNode.create(MathConstant.pi),
+            ConstantNode.create(MathConstant.e),
+          ],
+        ),
+      );
+      final tex = hiddenTex(doc);
+      expect(tex, contains(r'\pi e'));
+      expect(tex, isNot(contains(r'\pie')));
     });
 
     test('constants pi / e / Ans', () {
@@ -73,8 +118,8 @@ void main() {
         ),
       );
       final tex = hiddenTex(doc);
-      expect(tex, contains(r'\pi'));
-      expect(tex, contains('e'));
+      // \pi 與 e 必須為相異 token（不黏成 \pie）。
+      expect(tex, contains(r'\pi e'));
       expect(tex, contains(r'\operatorname{Ans}'));
     });
   });

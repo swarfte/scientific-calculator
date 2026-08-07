@@ -303,14 +303,18 @@ class TreeExpressionTexSerializer {
     return switch (operator) {
       ExpressionOperator.add => '+',
       ExpressionOperator.subtract => '-',
-      ExpressionOperator.multiply => r'\times',
-      ExpressionOperator.divide => r'\div',
+      // 末尾空格：分隔巨集名，避免與後方字母 token（如常數 e）黏成未定義
+      // 巨集（\timese）導致 Math renderer layout 失敗。空格為 LaTeX 標準巨集
+      // 終止符，視覺與無空格一致。
+      ExpressionOperator.multiply => r'\times ',
+      ExpressionOperator.divide => r'\div ',
     };
   }
 
   String _constantTex(MathConstant constant) {
     return switch (constant) {
-      MathConstant.pi => r'\pi',
+      // 同上：\pi 需以空格與後方字母 token 分隔。
+      MathConstant.pi => r'\pi ',
       MathConstant.e => 'e',
       MathConstant.answer => r'\operatorname{Ans}',
     };
