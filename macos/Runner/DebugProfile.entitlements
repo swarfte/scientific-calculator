@@ -8,5 +8,11 @@
 	<true/>
 	<key>com.apple.security.network.server</key>
 	<true/>
+	<!-- 查詢 GitHub Release API 與下載安裝檔。 -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<!-- 把下載的 .dmg 放進使用者的「下載」資料夾。 -->
+	<key>com.apple.security.files.downloads.read-write</key>
+	<true/>
 </dict>
 </plist>

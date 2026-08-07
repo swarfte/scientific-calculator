@@ -44,7 +44,16 @@ dependencies:
   window_manager: ^0.5.2
   flutter_riverpod: ^3.4.2
   screen_retriever: ^0.2.2
-  
+
+  # 應用程式內更新（檢查 GitHub Release、下載安裝檔）。
+  http: ^1.6.0
+  path: ^1.9.1
+  path_provider: ^2.1.6
+  # Android 專用：透過內建 FileProvider 觸發系統安裝程式開啟 APK。
+  open_filex: ^4.7.0
+  # Windows / macOS 開啟已下載的安裝檔，以及開啟 Release 頁面。
+  url_launcher: ^6.3.2
+
 
 dev_dependencies:
   flutter_test:

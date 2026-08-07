@@ -40,7 +40,7 @@ class CalculatorScreen extends ConsumerWidget {
       enabled: isKeyboardInputEnabled,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Calculator'),
+          title: const Text('Sci Calc'),
           centerTitle: false,
           actions: [
             if (isDesktop) const PinButton(),
@@ -65,68 +65,68 @@ class CalculatorScreen extends ConsumerWidget {
           ],
         ),
         body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                children: [
-                  Card(
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                      children: [
-                        NaturalMathDisplay(
-                          tex: texResult.withHiddenCursor,
-                          texWithCursor: texResult.withVisibleCursor,
-                          showCursor: !state.hasEvaluated,
-                        ),
-                        const Divider(height: 1),
-                        ResultDisplay(
-                          result: state.result?.formattedValue,
-                          errorMessage: state.errorMessage,
-                          tex: state.result?.formattedTex,
-                        ),
-                      ],
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  children: [
+                    Card(
+                      clipBehavior: Clip.antiAlias,
+                      child: Column(
+                        children: [
+                          NaturalMathDisplay(
+                            tex: texResult.withHiddenCursor,
+                            texWithCursor: texResult.withVisibleCursor,
+                            showCursor: !state.hasEvaluated,
+                          ),
+                          const Divider(height: 1),
+                          ResultDisplay(
+                            result: state.result?.formattedValue,
+                            errorMessage: state.errorMessage,
+                            tex: state.result?.formattedTex,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Expanded(
-                    child: CalculatorKeypad(
-                      onDigit: viewModel.inputDigit,
-                      onDecimal: viewModel.inputDecimalPoint,
-                      onAdd: viewModel.inputAdd,
-                      onSubtract: viewModel.inputSubtract,
-                      onMultiply: viewModel.inputMultiply,
-                      onDivide: viewModel.inputDivide,
-                      onOpenParenthesis: viewModel.inputOpenGroup,
-                      onCloseParenthesis: viewModel.inputCloseGroup,
-                      onSquare: viewModel.inputSquare,
-                      onPower: viewModel.inputPower,
-                      onSquareRoot: viewModel.inputSquareRoot,
-                      onSin: viewModel.inputSin,
-                      onCos: viewModel.inputCos,
-                      onTan: viewModel.inputTan,
-                      onLog: viewModel.inputLog10,
-                      onLn: viewModel.inputLn,
-                      onPi: viewModel.inputPi,
-                      onEulerNumber: viewModel.inputEulerNumber,
-                      onBackspace: viewModel.backspace,
-                      onClear: viewModel.clear,
-                      onCalculate: viewModel.calculate,
-                      onFraction: viewModel.inputFraction,
-                      onMoveUp: viewModel.moveUp,
-                      onMoveDown: viewModel.moveDown,
-                      onMoveLeft: viewModel.moveLeft,
-                      onMoveRight: viewModel.moveRight,
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: CalculatorKeypad(
+                        onDigit: viewModel.inputDigit,
+                        onDecimal: viewModel.inputDecimalPoint,
+                        onAdd: viewModel.inputAdd,
+                        onSubtract: viewModel.inputSubtract,
+                        onMultiply: viewModel.inputMultiply,
+                        onDivide: viewModel.inputDivide,
+                        onOpenParenthesis: viewModel.inputOpenGroup,
+                        onCloseParenthesis: viewModel.inputCloseGroup,
+                        onSquare: viewModel.inputSquare,
+                        onPower: viewModel.inputPower,
+                        onSquareRoot: viewModel.inputSquareRoot,
+                        onSin: viewModel.inputSin,
+                        onCos: viewModel.inputCos,
+                        onTan: viewModel.inputTan,
+                        onLog: viewModel.inputLog10,
+                        onLn: viewModel.inputLn,
+                        onPi: viewModel.inputPi,
+                        onEulerNumber: viewModel.inputEulerNumber,
+                        onBackspace: viewModel.backspace,
+                        onClear: viewModel.clear,
+                        onCalculate: viewModel.calculate,
+                        onFraction: viewModel.inputFraction,
+                        onMoveUp: viewModel.moveUp,
+                        onMoveDown: viewModel.moveDown,
+                        onMoveLeft: viewModel.moveLeft,
+                        onMoveRight: viewModel.moveRight,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
       ),
     );
   }

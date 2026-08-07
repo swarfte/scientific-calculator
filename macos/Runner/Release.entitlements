@@ -4,5 +4,13 @@
 <dict>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
+	<!-- 查詢 GitHub Release API 與下載安裝檔；App Sandbox 下沒有這一項就
+	     完全無法對外連線。 -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<!-- 把下載的 .dmg 放進使用者的「下載」資料夾，之後才能交給
+	     NSWorkspace（url_launcher）開啟。 -->
+	<key>com.apple.security.files.downloads.read-write</key>
+	<true/>
 </dict>
 </plist>

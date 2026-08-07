@@ -1,4 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 檢查 GitHub Release 與下載安裝檔。Flutter 只會自動把 INTERNET 加進
+         debug/profile 的 manifest，release build 必須自己宣告。 -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- 下載完成後叫起系統的套件安裝程式。open_filex 為了符合 Google Play
+         的發佈政策，刻意從自己的 manifest 移除了這個權限，因此必須由 app
+         宣告；否則 Android 8.0 以上無法安裝下載回來的 APK。 -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+
     <application android:label="Sci Calc" android:name="${applicationName}" android:icon="@mipmap/ic_launcher">
         <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTop" android:taskAffinity="" android:theme="@style/LaunchTheme" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode" android:hardwareAccelerated="true" android:windowSoftInputMode="adjustResize">
             <!-- Specifies an Android theme to apply to this Activity as soon as
