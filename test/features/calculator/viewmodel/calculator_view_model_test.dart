@@ -60,9 +60,8 @@ void main() {
       viewModel().inputDigit('3');
       viewModel().inputDigit('0');
 
-      // cursor 在 NumberNode 30 的文字末端；先離開 number 至 argument
-      // 末端，再向右離開 function 至 root。
-      viewModel().moveRight();
+      // cursor 在 NumberNode 30 的文字末端；單次向右即合併隱形中間步、
+      // 直接離開 function 至 root。
       viewModel().moveRight();
 
       expect(state().document.cursor.sequenceId, state().document.root.id);

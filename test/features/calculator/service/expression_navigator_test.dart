@@ -246,6 +246,183 @@ void main() {
     });
   });
 
+  // 單一 child-sequence owner（function / group / root）的「隱形中間步」回歸：
+  // 游標在末端 NumberNode 文字末端（或開頭）時，單次方向鍵應合併步驟、
+  // 直接離開 owner，避免「按一下視覺無變化、需按兩下」。
+  group('invisible-step skip（單一 sequence owner）', () {
+    test('sin(30|) 文字末端向右一下 -> 直接離開 function 至 root', () {
+      final argument = SequenceNode(
+        id: NodeId.generate(),
+        children: [NumberNode.create('30')],
+      );
+      final function = FunctionNode(
+        id: NodeId.generate(),
+        function: MathFunction.sin,
+        argument: argument,
+      );
+      final root = SequenceNode(id: NodeId.generate(), children: [function]);
+      final doc = TreeExpressionDocument(
+        root: root,
+        cursor: CursorPosition(
+          sequenceId: argument.id,
+          nodeOffset: 0,
+          textOffset: 2, // 30|
+        ),
+      );
+
+      final moved = navigator.moveRight(doc);
+
+      expect(moved.cursor.sequenceId, root.id);
+      expect(moved.cursor.nodeOffset, 1); // function 後方間隙
+      expect(moved.cursor.textOffset, isNull);
+    });
+
+    test('sin(|30) 文字開頭向左一下 -> 直接離開 function 至前方間隙', () {
+      final argument = SequenceNode(
+        id: NodeId.generate(),
+        children: [NumberNode.create('30')],
+      );
+      final function = FunctionNode(
+        id: NodeId.generate(),
+        function: MathFunction.sin,
+        argument: argument,
+      );
+      final root = SequenceNode(id: NodeId.generate(), children: [function]);
+      final doc = TreeExpressionDocument(
+        root: root,
+        cursor: CursorPosition(
+          sequenceId: argument.id,
+          nodeOffset: 0,
+          textOffset: 0, // |30
+        ),
+      );
+
+      final moved = navigator.moveLeft(doc);
+
+      expect(moved.cursor.sequenceId, root.id);
+      expect(moved.cursor.nodeOffset, 0); // function 前方間隙
+      expect(moved.cursor.textOffset, isNull);
+    });
+
+    test('group content 文字末端向右一下 -> 直接離開 group', () {
+      final content = SequenceNode(
+        id: NodeId.generate(),
+        children: [NumberNode.create('5')],
+      );
+      final group = GroupNode(id: NodeId.generate(), content: content);
+      final root = SequenceNode(id: NodeId.generate(), children: [group]);
+      final doc = TreeExpressionDocument(
+        root: root,
+        cursor: CursorPosition(
+          sequenceId: content.id,
+          nodeOffset: 0,
+          textOffset: 1, // 5|
+        ),
+      );
+
+      final moved = navigator.moveRight(doc);
+
+      expect(moved.cursor.sequenceId, root.id);
+      expect(moved.cursor.nodeOffset, 1); // group 後方間隙
+    });
+
+    test('square root radicand 文字末端向右一下 -> 直接離開 root', () {
+      final radicand = SequenceNode(
+        id: NodeId.generate(),
+        children: [NumberNode.create('2')],
+      );
+      final root = RootNode(
+        id: NodeId.generate(),
+        radicand: radicand,
+      );
+      final sequence = SequenceNode(
+        id: NodeId.generate(),
+        children: [root],
+      );
+      final doc = TreeExpressionDocument(
+        root: sequence,
+        cursor: CursorPosition(
+          sequenceId: radicand.id,
+          nodeOffset: 0,
+          textOffset: 1, // 2|
+        ),
+      );
+
+      final moved = navigator.moveRight(doc);
+
+      expect(moved.cursor.sequenceId, sequence.id);
+      expect(moved.cursor.nodeOffset, 1); // root 後方間隙
+    });
+  });
+
+  group('多 sequence owner 保留原行為（不誤合併）', () {
+    test('Fraction numerator 文字末端向右一下 -> 停在 numerator 末端間隙（不跳過 fraction）', () {
+      final numerator = SequenceNode(
+        id: NodeId.generate(),
+        children: [NumberNode.create('1')],
+      );
+      final denominator = SequenceNode(
+        id: NodeId.generate(),
+        children: [NumberNode.create('2')],
+      );
+      final fraction = FractionNode(
+        id: NodeId.generate(),
+        numerator: numerator,
+        denominator: denominator,
+      );
+      final root = SequenceNode(id: NodeId.generate(), children: [fraction]);
+      final doc = TreeExpressionDocument(
+        root: root,
+        cursor: CursorPosition(
+          sequenceId: numerator.id,
+          nodeOffset: 0,
+          textOffset: 1, // 1|
+        ),
+      );
+
+      final moved = navigator.moveRight(doc);
+
+      // 仍有 sibling sequence（denominator）可去，不符合合併條件：停在
+      // numerator 末端間隙（與 flat sequence 一致，下一步才到 denominator）。
+      expect(moved.cursor.sequenceId, numerator.id);
+      expect(moved.cursor.nodeOffset, 1);
+      expect(moved.cursor.textOffset, isNull);
+    });
+
+    test('Fraction denominator 文字開頭向左一下 -> 停在 denominator 開頭間隙（不跳過 fraction）', () {
+      final numerator = SequenceNode(
+        id: NodeId.generate(),
+        children: [NumberNode.create('1')],
+      );
+      final denominator = SequenceNode(
+        id: NodeId.generate(),
+        children: [NumberNode.create('2')],
+      );
+      final fraction = FractionNode(
+        id: NodeId.generate(),
+        numerator: numerator,
+        denominator: denominator,
+      );
+      final root = SequenceNode(id: NodeId.generate(), children: [fraction]);
+      final doc = TreeExpressionDocument(
+        root: root,
+        cursor: CursorPosition(
+          sequenceId: denominator.id,
+          nodeOffset: 0,
+          textOffset: 0, // |2
+        ),
+      );
+
+      final moved = navigator.moveLeft(doc);
+
+      // 仍有 sibling sequence（numerator）可去，不符合合併條件：停在
+      // denominator 開頭間隙（與 flat sequence 一致，下一步才到 numerator）。
+      expect(moved.cursor.sequenceId, denominator.id);
+      expect(moved.cursor.nodeOffset, 0);
+      expect(moved.cursor.textOffset, isNull);
+    });
+  });
+
   group('FractionNode left/right navigation', () {
     late FractionNode fraction;
     late SequenceNode root;
