@@ -49,3 +49,10 @@ app.*.map.json
 .env
 
 .dart_tool/
+
+# apk release
+*.jks
+android/key.properties
+android/*.jks
+android/*.keystore
+*.base64

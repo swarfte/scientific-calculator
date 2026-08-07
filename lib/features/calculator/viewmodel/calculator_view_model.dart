@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/result_format_settings.dart';
 import '../../../core/errors/calculator_exception.dart';
 import '../../../core/math/angle_mode.dart';
 import '../model/calculator_state.dart';
@@ -174,11 +175,18 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
   // ---- 計算 ---------------------------------------------------------------
 
   void calculate() {
+    _evaluate(document: state.document);
+  }
+
+  /// 以給定 [document] 求值，並更新 state（成功時放入結果、清錯誤）。
+  void _evaluate({required ExpressionDocument document}) {
+    final resultFormat = ref.read(resultFormatSettingsProvider);
     try {
       final result = _engine.evaluate(
-        state.document.root,
+        document.root,
         angleMode: state.angleMode,
         answer: state.answer,
+        resultFormat: resultFormat,
       );
       state = state.copyWith(
         result: result,
@@ -202,6 +210,25 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
         ? AngleMode.radian
         : AngleMode.degree;
     state = state.copyWith(angleMode: nextMode, clearError: true);
+  }
+
+  // ---- 結果顯示格式 -------------------------------------------------------
+
+  /// 切換 DEC / FRAC 顯示格式。
+  ///
+  /// 切換後若目前已有結果，會以新格式重新求值同一算式，讓顯示即時更新，
+  /// 不需要再按一次 `=`。
+  Future<void> toggleResultFormat() async {
+    final current = ref.read(resultFormatSettingsProvider);
+    final next = current == ResultFormatPreference.decimal
+        ? ResultFormatPreference.fraction
+        : ResultFormatPreference.decimal;
+    await ref.read(resultFormatSettingsProvider.notifier).set(next);
+
+    // 若已有結果，以新格式重新求值。錯誤狀態（errorMessage）不重新計算。
+    if (state.result != null && state.errorMessage == null) {
+      _evaluate(document: state.document);
+    }
   }
 
   // ---- helpers ------------------------------------------------------------

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:scientific_calculator/app/result_format_settings.dart';
 import 'package:scientific_calculator/core/errors/calculator_exception.dart';
 import 'package:scientific_calculator/core/math/angle_mode.dart';
 import 'package:scientific_calculator/features/calculator/model/expression/expression_node.dart';
@@ -407,6 +408,121 @@ void main() {
       ]);
       final result = engine.evaluate(root, angleMode: AngleMode.degree);
       expect(result.formattedValue, '5');
+    });
+  });
+
+  group('formattedTex（分數模式）', () {
+    test('decimal 模式 formattedTex 恆為 null', () {
+      final root = seq([
+        NumberNode.create('4'),
+        OperatorNode.create(ExpressionOperator.divide),
+        NumberNode.create('3'),
+      ]);
+      final result = engine.evaluate(root, angleMode: AngleMode.degree);
+      expect(result.formattedTex, isNull);
+    });
+
+    test('4/3 fraction 模式 -> 帶分數 TeX', () {
+      final root = seq([
+        NumberNode.create('4'),
+        OperatorNode.create(ExpressionOperator.divide),
+        NumberNode.create('3'),
+      ]);
+      final result = engine.evaluate(
+        root,
+        angleMode: AngleMode.degree,
+        resultFormat: ResultFormatPreference.fraction,
+      );
+      expect(result.formattedTex, r'1\frac{1}{3}');
+      // 數值仍為小數，Ans 不受模式影響。
+      expectClose(result.value, 4 / 3);
+    });
+
+    test('√12 fraction 模式 -> 2\\sqrt{3}', () {
+      final root = seq([
+        RootNode(
+          id: NodeId.generate(),
+          radicand: seq([NumberNode.create('12')]),
+        ),
+      ]);
+      final result = engine.evaluate(
+        root,
+        angleMode: AngleMode.degree,
+        resultFormat: ResultFormatPreference.fraction,
+      );
+      expect(result.formattedTex, r'2\sqrt{3}');
+    });
+
+    test('1/√2 fraction 模式 -> \\frac{1}{2}\\sqrt{2}（有理化）', () {
+      final frac = FractionNode(
+        id: NodeId.generate(),
+        numerator: seq([NumberNode.create('1')]),
+        denominator: seq([
+          RootNode(
+            id: NodeId.generate(),
+            radicand: seq([NumberNode.create('2')]),
+          ),
+        ]),
+      );
+      final result = engine.evaluate(
+        seq([frac]),
+        angleMode: AngleMode.degree,
+        resultFormat: ResultFormatPreference.fraction,
+      );
+      expect(result.formattedTex, r'\frac{1}{2}\sqrt{2}');
+    });
+
+    test('整數結果 fraction 模式 formattedTex 為 null（純文字顯示）', () {
+      final root = seq([
+        NumberNode.create('2'),
+        OperatorNode.create(ExpressionOperator.add),
+        NumberNode.create('3'),
+      ]);
+      final result = engine.evaluate(
+        root,
+        angleMode: AngleMode.degree,
+        resultFormat: ResultFormatPreference.fraction,
+      );
+      expect(result.formattedTex, isNull);
+      expect(result.formattedValue, '5');
+    });
+
+    test('sin(30°) fraction 模式 -> null（bail-out，退回小數）', () {
+      final root = seq([
+        FunctionNode(
+          id: NodeId.generate(),
+          function: MathFunction.sin,
+          argument: seq([NumberNode.create('30')]),
+        ),
+      ]);
+      final result = engine.evaluate(
+        root,
+        angleMode: AngleMode.degree,
+        resultFormat: ResultFormatPreference.fraction,
+      );
+      expect(result.formattedTex, isNull);
+      // formattedValue 仍為小數 0.5。
+      expect(result.formattedValue, '0.5');
+    });
+
+    test('√2 + √3 fraction 模式 -> \\sqrt{2} + \\sqrt{3}', () {
+      final root = seq([
+        RootNode(
+          id: NodeId.generate(),
+          radicand: seq([NumberNode.create('2')]),
+        ),
+        OperatorNode.create(ExpressionOperator.add),
+        RootNode(
+          id: NodeId.generate(),
+          radicand: seq([NumberNode.create('3')]),
+        ),
+      ]);
+      final result = engine.evaluate(
+        root,
+        angleMode: AngleMode.degree,
+        resultFormat: ResultFormatPreference.fraction,
+      );
+      expect(result.formattedTex, r'\sqrt{2} + \sqrt{3}');
     });
   });
 }

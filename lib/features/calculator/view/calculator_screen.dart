@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/always_on_top_settings.dart';
+import '../../../../app/result_format_settings.dart';
 import '../viewmodel/calculator_providers.dart';
 import 'calculator_keyboard_input_enabled_provider.dart';
 import 'widgets/calculator_keypad.dart';
@@ -10,6 +11,7 @@ import 'widgets/mode_indicator.dart';
 import 'widgets/natural_math_display.dart';
 import 'widgets/pin_button.dart';
 import 'widgets/result_display.dart';
+import 'widgets/result_format_indicator.dart';
 import 'widgets/settings_button.dart';
 
 class CalculatorScreen extends ConsumerWidget {
@@ -20,6 +22,7 @@ class CalculatorScreen extends ConsumerWidget {
     final state = ref.watch(calculatorViewModelProvider);
     final viewModel = ref.read(calculatorViewModelProvider.notifier);
     final serializer = ref.watch(treeExpressionTexSerializerProvider);
+    final resultFormat = ref.watch(resultFormatSettingsProvider);
 
     // TeX 完全由 Tree Serializer 產生；按 `=` 後游標不顯示。
     final texResult = serializer.serialize(
@@ -46,6 +49,13 @@ class CalculatorScreen extends ConsumerWidget {
               child: ModeIndicator(
                 angleMode: state.angleMode,
                 onPressed: viewModel.toggleAngleMode,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: ResultFormatIndicator(
+                resultFormat: resultFormat,
+                onPressed: viewModel.toggleResultFormat,
               ),
             ),
             const Padding(
@@ -75,6 +85,7 @@ class CalculatorScreen extends ConsumerWidget {
                         ResultDisplay(
                           result: state.result?.formattedValue,
                           errorMessage: state.errorMessage,
+                          tex: state.result?.formattedTex,
                         ),
                       ],
                     ),
