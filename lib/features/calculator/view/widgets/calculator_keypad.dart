@@ -143,27 +143,29 @@ class CalculatorKeypad extends StatelessWidget {
             semanticLabel: 'sin⁻¹',
             callback: onArcSin,
             style: CalculatorKeyStyle.function,
-            label: const _ArcTrigIcon('sin'),
+            // Unicode 上標 ⁻¹（U+207B U+00B9）自帶正確的垂直位置。
+            label: const _TextIcon('sin⁻¹'),
           ),
           _widgetKey(
             semanticLabel: 'cos⁻¹',
             callback: onArcCos,
             style: CalculatorKeyStyle.function,
-            label: const _ArcTrigIcon('cos'),
+            label: const _TextIcon('cos⁻¹'),
           ),
           _widgetKey(
             semanticLabel: 'tan⁻¹',
             callback: onArcTan,
             style: CalculatorKeyStyle.function,
-            label: const _ArcTrigIcon('tan'),
+            label: const _TextIcon('tan⁻¹'),
           ),
         ]),
         _row([
           _widgetKey(
-            semanticLabel: 'logₓᵧ',
+            semanticLabel: 'logₓy',
             callback: onLogarithm,
             style: CalculatorKeyStyle.function,
-            label: const _LogarithmIcon(),
+            // Unicode 下標 x（U+2093）作底數，y 為正常大小真數。
+            label: const _TextIcon('logₓy'),
           ),
           _widgetKey(
             semanticLabel: 'ln',
@@ -190,10 +192,11 @@ class CalculatorKeypad extends StatelessWidget {
             label: const _TextIcon('√'),
           ),
           _widgetKey(
-            semanticLabel: 'ˣ√',
+            semanticLabel: 'ⁿ√',
             callback: onNthRoot,
             style: CalculatorKeyStyle.function,
-            label: const _NthRootIcon(),
+            // Unicode 上標 ⁿ（U+207F）+ 根號 √（U+221A）。
+            label: const _TextIcon('ⁿ√'),
           ),
         ]),
         _row([
@@ -201,6 +204,7 @@ class CalculatorKeypad extends StatelessWidget {
             semanticLabel: 'log₂',
             callback: onLogarithmBase2,
             style: CalculatorKeyStyle.function,
+            // Unicode 下標 ₂（U+2082）。
             label: const _TextIcon('log₂'),
           ),
           _widgetKey(
@@ -225,13 +229,15 @@ class CalculatorKeypad extends StatelessWidget {
             semanticLabel: 'x²',
             callback: onSquare,
             style: CalculatorKeyStyle.function,
-            label: const _PowerIcon('x', '2'),
+            // Unicode 上標 ²（U+00B2）自帶正確位置。
+            label: const _TextIcon('x²'),
           ),
           _widgetKey(
             semanticLabel: 'xʸ',
             callback: onPower,
             style: CalculatorKeyStyle.function,
-            label: const _PowerIcon('x', 'y'),
+            // Unicode 上標 ʸ（U+02B8）。
+            label: const _TextIcon('xʸ'),
           ),
         ]),
         _row([
@@ -394,6 +400,9 @@ Color _keyForegroundColor(BuildContext context) {
 }
 
 /// 純文字按鍵圖標。統一所有單行文字按鍵走相同渲染路徑，確保字級與顏色一致。
+///
+/// 上下標一律使用 Unicode 字符（如 ² ʸ ⁻¹ ⁿ ₓ ₂），由字型自帶正確的垂直
+/// 位置，避免手動拼湊 RichText 導致的定位錯誤。
 class _TextIcon extends StatelessWidget {
   const _TextIcon(this.text);
 
@@ -402,101 +411,6 @@ class _TextIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(text);
-  }
-}
-
-/// 反三角函數按鍵圖標：`sin` + 上標 `⁻¹`。
-class _ArcTrigIcon extends StatelessWidget {
-  const _ArcTrigIcon(this.name);
-
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    return RichText(
-      text: TextSpan(
-        style: DefaultTextStyle.of(context).style,
-        children: [
-          TextSpan(text: name),
-          const TextSpan(text: '⁻¹', style: TextStyle(fontSize: 11)),
-        ],
-      ),
-    );
-  }
-}
-
-/// 對數按鍵圖標：`log` 加下標底數，後接真數。
-///
-/// [defaultBase] 為 `null` 時（`logₓᵧ`）下標顯示 `x`，右側顯示 `y`，表達
-/// 「以 x 為底、y 為真數」；不為 `null` 時（如 `log₂`）下標顯示該底數，
-/// 右側顯示 `x` 作為真數佔位。
-class _LogarithmIcon extends StatelessWidget {
-  const _LogarithmIcon({this.defaultBase});
-
-  final String? defaultBase;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _keyForegroundColor(context);
-    final base = defaultBase ?? 'x';
-    final argument = defaultBase == null ? 'y' : 'x';
-
-    return RichText(
-      text: TextSpan(
-        style: DefaultTextStyle.of(context).style,
-        children: [
-          const TextSpan(text: 'log'),
-          TextSpan(
-            text: base,
-            style: TextStyle(fontSize: 11, color: color),
-          ),
-          const TextSpan(text: ' '),
-          TextSpan(
-            text: argument,
-            style: TextStyle(color: color),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// `ˣ√`（n 次根）按鍵圖標：左上小 `x` + 根號。
-class _NthRootIcon extends StatelessWidget {
-  const _NthRootIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return RichText(
-      text: TextSpan(
-        style: DefaultTextStyle.of(context).style,
-        children: const [
-          TextSpan(text: 'ⁿ', style: TextStyle(fontSize: 11)),
-          TextSpan(text: '√'),
-        ],
-      ),
-    );
-  }
-}
-
-/// 次方按鍵圖標：底數 + 上標指數。
-class _PowerIcon extends StatelessWidget {
-  const _PowerIcon(this.base, this.exponent);
-
-  final String base;
-  final String exponent;
-
-  @override
-  Widget build(BuildContext context) {
-    return RichText(
-      text: TextSpan(
-        style: DefaultTextStyle.of(context).style,
-        children: [
-          TextSpan(text: base),
-          TextSpan(text: exponent, style: const TextStyle(fontSize: 11)),
-        ],
-      ),
-    );
   }
 }
 
