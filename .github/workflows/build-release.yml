@@ -251,8 +251,8 @@ jobs:
         run: flutter analyze
 
       # 專案具備 tests 後可啟用。
-      # - name: Run tests
-      #   run: flutter test
+      - name: Run tests
+        run: flutter test
 
       - name: Build signed release APK
         shell: bash
@@ -447,8 +447,8 @@ jobs:
         run: flutter analyze
 
       # 專案具備可正常執行的 tests 後，可取消註解。
-      # - name: Run tests
-      #   run: flutter test
+      - name: Run tests
+        run: flutter test
 
       - name: Build Windows release
         shell: pwsh
@@ -715,8 +715,8 @@ jobs:
         run: flutter analyze
 
       # 專案具備可正常執行的 tests 後，可取消註解。
-      # - name: Run tests
-      #   run: flutter test
+      - name: Run tests
+        run: flutter test
 
       - name: Build macOS release
         shell: bash

@@ -7,20 +7,29 @@ import 'package:scientific_calculator/app/package_info_providers.dart';
 import 'package:scientific_calculator/app/theme_settings.dart';
 import 'package:scientific_calculator/features/calculator/view/widgets/settings_button.dart';
 import 'package:scientific_calculator/features/calculator/view/widgets/settings_dialog.dart';
+import 'package:scientific_calculator/features/update/model/update_platform.dart';
+import 'package:scientific_calculator/features/update/viewmodel/update_providers.dart';
 
 import '../../../../helpers/shared_preferences_test_helper.dart';
+import '../../../update/update_test_fakes.dart';
 
 /// 設定對話框 widget 測試。
 void main() {
   setUp(setupSharedPreferencesForTest);
 
+  /// 平台固定為 windows：CI 會在 ubuntu / windows / macos 上跑測試，不鎖定的話
+  /// `UpdatePlatform.current` 會隨 runner 改變，更新區塊的內容也跟著變。
   Future<void> pumpDialog(
     WidgetTester tester, {
     List<Override> overrides = const [],
+    UpdatePlatform platform = UpdatePlatform.windows,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: overrides,
+        overrides: [
+          updatePlatformProvider.overrideWithValue(platform),
+          ...overrides,
+        ],
         child: MaterialApp(
           home: Scaffold(
             body: Builder(
@@ -65,6 +74,43 @@ void main() {
     expect(find.text('1.0.0 (build 1)'), findsOneWidget);
   });
 
+  testWidgets('顯示更新區塊，且開啟對話框不會自動連網', (tester) async {
+    final client = FakeGithubReleaseClient();
+
+    await pumpDialog(
+      tester,
+      overrides: [
+        packageInfoProvider.overrideWith((ref) async => _emptyPackageInfo()),
+        githubReleaseClientProvider.overrideWithValue(client),
+      ],
+    );
+
+    expect(find.text('Update'), findsOneWidget);
+    expect(find.text('Check for updates'), findsOneWidget);
+    // 只有 UpdateCheckStarter（app 啟動）與使用者手動按鈕才會打 API。
+    expect(client.callCount, 0);
+  });
+
+  testWidgets('在對話框中按下 Check for updates 會取得新版本', (tester) async {
+    final client = FakeGithubReleaseClient();
+
+    await pumpDialog(
+      tester,
+      overrides: [
+        packageInfoProvider.overrideWith((ref) async => _emptyPackageInfo()),
+        githubReleaseClientProvider.overrideWithValue(client),
+        updateDownloaderProvider.overrideWithValue(FakeUpdateDownloader()),
+      ],
+    );
+
+    await tester.tap(find.text('Check for updates'));
+    await tester.pumpAndSettle();
+
+    expect(client.callCount, 1);
+    expect(find.text('Update available: 2026.8.7 (build 6)'), findsOneWidget);
+    expect(find.text('Download & install'), findsOneWidget);
+  });
+
   testWidgets('預設選中 System，點 Light 後切換狀態', (tester) async {
     await pumpDialog(
       tester,
@@ -106,22 +152,61 @@ void main() {
   });
 
   testWidgets('SettingsButton 點擊後開啟對話框', (tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          packageInfoProvider.overrideWith((ref) async => _emptyPackageInfo()),
-        ],
-        child: const MaterialApp(
-          home: Scaffold(body: SettingsButton()),
-        ),
-      ),
-    );
+    await pumpSettingsButton(tester);
 
     await tester.tap(find.byType(SettingsButton));
     await tester.pumpAndSettle();
 
     expect(find.text('Settings'), findsOneWidget);
   });
+
+  testWidgets('沒有新版本時設定按鈕不顯示紅點', (tester) async {
+    await pumpSettingsButton(tester);
+
+    expect(badgeVisible(tester), isFalse);
+    expect(find.byTooltip('Settings'), findsOneWidget);
+  });
+
+  testWidgets('背景檢查找到新版本後設定按鈕出現紅點', (tester) async {
+    await pumpSettingsButton(tester);
+
+    // 模擬 UpdateCheckStarter 在 app 啟動時做的事。
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SettingsButton)),
+    );
+    await container
+        .read(updateControllerProvider.notifier)
+        .checkForUpdates(background: true);
+    await tester.pump();
+
+    expect(badgeVisible(tester), isTrue);
+    expect(find.byTooltip('Settings — update available'), findsOneWidget);
+  });
+}
+
+/// 掛上單獨的 [SettingsButton]，並把更新相關的依賴換成假實作。
+Future<void> pumpSettingsButton(WidgetTester tester) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        updatePlatformProvider.overrideWithValue(UpdatePlatform.windows),
+        // 1.0.0+1 比 fixture 的 2026.8.7 build 6 舊，因此檢查後會有更新。
+        packageInfoProvider.overrideWith((ref) async => _emptyPackageInfo()),
+        githubReleaseClientProvider.overrideWithValue(FakeGithubReleaseClient()),
+        updateDownloaderProvider.overrideWithValue(FakeUpdateDownloader()),
+      ],
+      child: const MaterialApp(
+        home: Scaffold(body: SettingsButton()),
+      ),
+    ),
+  );
+
+  await tester.pump();
+}
+
+/// 設定圖示上的紅點是否可見。
+bool badgeVisible(WidgetTester tester) {
+  return tester.widget<Badge>(find.byType(Badge)).isLabelVisible;
 }
 
 PackageInfo _emptyPackageInfo() {

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 
 import '../core/platform/platform_info.dart';
+import '../features/update/view/widgets/update_check_starter.dart';
 import 'app.dart';
 import 'always_on_top_settings.dart';
 import 'result_format_settings.dart';
@@ -78,7 +79,10 @@ Future<void> bootstrap() async {
           (ref) => initialResultFormat,
         ),
       ],
-      child: WindowStateObserver(child: ScientificCalculatorApp()),
+      // 啟動後在背景檢查一次更新；有新版本時設定按鈕會出現紅點。
+      child: UpdateCheckStarter(
+        child: WindowStateObserver(child: ScientificCalculatorApp()),
+      ),
     ),
   );
 }

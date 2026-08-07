@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/package_info_providers.dart';
 import '../../../../app/theme_settings.dart';
+import '../../../update/view/widgets/update_section.dart';
 
-/// 設定對話框：切換主題、顯示版本資訊。
+/// 設定對話框：切換主題、顯示版本資訊、檢查與下載更新。
 Future<void> showSettingsDialog(BuildContext context) {
   return showDialog<void>(
     context: context,
@@ -60,6 +61,8 @@ class _SettingsDialog extends ConsumerWidget {
               ),
               subtitle: const _VersionText(),
             ),
+            const Divider(),
+            const UpdateSection(),
           ],
         ),
       ),
