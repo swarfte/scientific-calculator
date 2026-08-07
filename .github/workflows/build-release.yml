@@ -74,9 +74,14 @@ jobs:
           echo "Release title: ${RELEASE_TITLE}"
 
   build-android:
-    name: Build Android APK
+    name: Build Signed Android APK
     runs-on: ubuntu-latest
-    needs: prepare-version
+
+    needs:
+      - prepare-version
+
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
@@ -86,7 +91,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: "25"
+          java-version: "17"
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -100,9 +105,144 @@ jobs:
       - name: Show build information
         shell: bash
         run: |
+          set -euo pipefail
+
           echo "Application name: ${APP_NAME}"
           echo "Application version: ${{ needs.prepare-version.outputs.app-version }}"
           echo "Build number: ${{ needs.prepare-version.outputs.build-number }}"
+
+      # 如果任何 Secret 缺失，立即停止。
+      # 絕不回退至 debug signing。
+      - name: Validate Android signing secrets
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          missing_secrets=()
+
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            missing_secrets+=("ANDROID_KEYSTORE_BASE64")
+          fi
+
+          if [ -z "$KEYSTORE_PASSWORD" ]; then
+            missing_secrets+=("ANDROID_KEYSTORE_PASSWORD")
+          fi
+
+          if [ -z "$KEY_ALIAS" ]; then
+            missing_secrets+=("ANDROID_KEY_ALIAS")
+          fi
+
+          if [ -z "$KEY_PASSWORD" ]; then
+            missing_secrets+=("ANDROID_KEY_PASSWORD")
+          fi
+
+          if [ "${#missing_secrets[@]}" -gt 0 ]; then
+            echo "::error::以下 Android signing secrets 缺失："
+
+            for secret_name in "${missing_secrets[@]}"; do
+              echo "::error::  - $secret_name"
+            done
+
+            exit 1
+          fi
+
+          echo "Android signing secrets 已設定。"
+
+      # 還原為 android/android-release.jks
+      - name: Restore Android release keystore
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+
+          KEYSTORE_PATH="$GITHUB_WORKSPACE/android/android-release.jks"
+
+          rm -f "$KEYSTORE_PATH"
+
+          printf '%s' "$KEYSTORE_BASE64" |
+            base64 --decode \
+            > "$KEYSTORE_PATH"
+
+          chmod 600 "$KEYSTORE_PATH"
+
+          if [ ! -s "$KEYSTORE_PATH" ]; then
+            echo "::error::還原後的 Android keystore 不存在或檔案大小為 0。"
+            exit 1
+          fi
+
+          echo "Android release keystore 已成功還原。"
+          ls -lh "$KEYSTORE_PATH"
+
+      # 動態建立 android/key.properties
+      - name: Create Android key.properties
+        shell: bash
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          PROPERTIES_PATH="$GITHUB_WORKSPACE/android/key.properties"
+
+          rm -f "$PROPERTIES_PATH"
+
+          {
+            printf 'storePassword=%s\n' "$KEYSTORE_PASSWORD"
+            printf 'keyPassword=%s\n' "$KEY_PASSWORD"
+            printf 'keyAlias=%s\n' "$KEY_ALIAS"
+            printf 'storeFile=%s\n' "android-release.jks"
+          } > "$PROPERTIES_PATH"
+
+          chmod 600 "$PROPERTIES_PATH"
+
+          if [ ! -s "$PROPERTIES_PATH" ]; then
+            echo "::error::android/key.properties 建立失敗。"
+            exit 1
+          fi
+
+          # 不輸出任何密碼。
+          echo "android/key.properties 已建立。"
+          echo "keyAlias=$KEY_ALIAS"
+          echo "storeFile=android-release.jks"
+
+      # 在 Flutter build 前驗證 JKS 密碼和 alias。
+      - name: Verify Android release keystore
+        shell: bash
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+
+          KEYSTORE_PATH="$GITHUB_WORKSPACE/android/android-release.jks"
+          KEYSTORE_INFORMATION="$RUNNER_TEMP/android-keystore-information.txt"
+
+          keytool \
+            -list \
+            -keystore "$KEYSTORE_PATH" \
+            -storepass "$KEYSTORE_PASSWORD" \
+            -alias "$KEY_ALIAS" \
+            -v \
+            > "$KEYSTORE_INFORMATION"
+
+          if ! grep -Fq "PrivateKeyEntry" "$KEYSTORE_INFORMATION"; then
+            echo "::error::指定 alias 不是有效的 PrivateKeyEntry。"
+            exit 1
+          fi
+
+          echo "Android release keystore 驗證成功。"
+          echo "Alias: $KEY_ALIAS"
+
+          grep -E "SHA256:|SHA-256:" \
+            "$KEYSTORE_INFORMATION" \
+            || true
 
       - name: Install dependencies
         run: flutter pub get
@@ -110,11 +250,11 @@ jobs:
       - name: Analyze project
         run: flutter analyze
 
-      # 專案具備可正常執行的 tests 後，可取消註解。
+      # 專案具備 tests 後可啟用。
       # - name: Run tests
       #   run: flutter test
 
-      - name: Build release APK
+      - name: Build signed release APK
         shell: bash
         run: |
           set -euo pipefail
@@ -123,6 +263,110 @@ jobs:
             --release \
             --build-name="${{ needs.prepare-version.outputs.app-version }}" \
             --build-number="${{ needs.prepare-version.outputs.build-number }}"
+
+      # 驗證 APK 確實使用指定 JKS 簽署。
+      - name: Verify APK signature and signing certificate
+        shell: bash
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+
+          APK_PATH="$GITHUB_WORKSPACE/build/app/outputs/flutter-apk/app-release.apk"
+          KEYSTORE_PATH="$GITHUB_WORKSPACE/android/android-release.jks"
+          APK_SIGNATURE_OUTPUT="$RUNNER_TEMP/apk-signature.txt"
+
+          if [ ! -s "$APK_PATH" ]; then
+            echo "::error::找不到 release APK 或檔案大小為 0：$APK_PATH"
+            exit 1
+          fi
+
+          if [ ! -s "$KEYSTORE_PATH" ]; then
+            echo "::error::找不到 Android release keystore：$KEYSTORE_PATH"
+            exit 1
+          fi
+
+          APKSIGNER="$(
+            find "$ANDROID_HOME/build-tools" \
+              -type f \
+              -name apksigner \
+              -print |
+            sort -V |
+            tail -n 1
+          )"
+
+          if [ -z "$APKSIGNER" ] || [ ! -x "$APKSIGNER" ]; then
+            echo "::error::找不到 Android SDK apksigner。"
+            exit 1
+          fi
+
+          echo "使用 apksigner：$APKSIGNER"
+
+          "$APKSIGNER" verify \
+            --verbose \
+            --print-certs \
+            "$APK_PATH" |
+            tee "$APK_SIGNATURE_OUTPUT"
+
+          APK_SHA256="$(
+            awk -F': ' '
+              /certificate SHA-256 digest:/ {
+                print $NF
+                exit
+              }
+            ' "$APK_SIGNATURE_OUTPUT" |
+            tr '[:lower:]' '[:upper:]' |
+            tr -d ':[:space:]'
+          )"
+
+          JKS_SHA256="$(
+            keytool \
+              -exportcert \
+              -rfc \
+              -keystore "$KEYSTORE_PATH" \
+              -storepass "$KEYSTORE_PASSWORD" \
+              -alias "$KEY_ALIAS" |
+            openssl x509 \
+              -noout \
+              -fingerprint \
+              -sha256 |
+            sed 's/^.*=//' |
+            tr '[:lower:]' '[:upper:]' |
+            tr -d ':[:space:]'
+          )"
+
+          if [ -z "$APK_SHA256" ]; then
+            echo "::error::無法從 apksigner 輸出取得 APK certificate SHA-256。"
+            cat "$APK_SIGNATURE_OUTPUT"
+            exit 1
+          fi
+
+          if [ -z "$JKS_SHA256" ]; then
+            echo "::error::無法取得 JKS certificate SHA-256。"
+            exit 1
+          fi
+
+          echo "APK certificate SHA-256: $APK_SHA256"
+          echo "JKS certificate SHA-256: $JKS_SHA256"
+
+          if [ "$APK_SHA256" != "$JKS_SHA256" ]; then
+            echo "::error::APK 並非由指定的 Android release keystore 簽署。"
+            echo "::error::APK certificate：$APK_SHA256"
+            echo "::error::JKS certificate：$JKS_SHA256"
+            exit 1
+          fi
+
+          {
+            echo "### Android APK signing"
+            echo
+            echo "- APK signature verification: passed"
+            echo "- Signing certificate SHA-256: \`$APK_SHA256\`"
+            echo "- Application version: \`${{ needs.prepare-version.outputs.app-version }}\`"
+            echo "- Android versionCode: \`${{ needs.prepare-version.outputs.build-number }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "APK 簽章及 signing certificate 驗證成功。"
 
       - name: Prepare Android release file
         shell: bash
@@ -157,6 +401,16 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
+
+      - name: Remove Android signing files
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          rm -f \
+            "$GITHUB_WORKSPACE/android/android-release.jks" \
+            "$GITHUB_WORKSPACE/android/key.properties"
+
+          echo "Runner 上的 Android signing files 已刪除。"
 
   build-windows:
     name: Build Windows Installer

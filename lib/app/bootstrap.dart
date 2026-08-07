@@ -5,6 +5,7 @@ import 'package:window_manager/window_manager.dart';
 import '../core/platform/platform_info.dart';
 import 'app.dart';
 import 'always_on_top_settings.dart';
+import 'result_format_settings.dart';
 import 'theme_settings.dart';
 import 'windows_state.dart';
 
@@ -63,6 +64,9 @@ Future<void> bootstrap() async {
   // 預先載入主題偏好，讓第一個畫面就套用上次選擇的主題，避免啟動閃爍。
   final initialThemePreference = await ThemeSettingsStorage.load();
 
+  // 預先載入結果顯示格式偏好（DEC/FRAC），讓首次計算就套用正確格式。
+  final initialResultFormat = await ResultFormatSettingsStorage.load();
+
   runApp(
     ProviderScope(
       overrides: [
@@ -70,6 +74,9 @@ Future<void> bootstrap() async {
           (ref) => initialThemePreference,
         ),
         initialAlwaysOnTopProvider.overrideWith((ref) => initialAlwaysOnTop),
+        initialResultFormatPreferenceProvider.overrideWith(
+          (ref) => initialResultFormat,
+        ),
       ],
       child: WindowStateObserver(child: ScientificCalculatorApp()),
     ),

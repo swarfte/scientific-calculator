@@ -1,11 +1,24 @@
+import java.io.FileInputStream
+import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+
+if (keystorePropertiesFile.exists()) {
+    FileInputStream(keystorePropertiesFile).use {
+        keystoreProperties.load(it)
+    }
+}
+
 plugins {
     id("com.android.application")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
 }
 
 android {
-    namespace = "com.example.scientific_calculator"
+    namespace = "com.swarfte.scientific_calculator"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -15,28 +28,71 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.scientific_calculator"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        applicationId = "com.swarfte.scientific_calculator"
+
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
+
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            if (!keystorePropertiesFile.exists()) {
+                throw GradleException(
+                    "找不到 android/key.properties，不能建立 signed release APK。"
+                )
+            }
+
+            keyAlias =
+                keystoreProperties.getProperty("keyAlias")
+                    ?: throw GradleException(
+                        "android/key.properties 缺少 keyAlias"
+                    )
+
+            keyPassword =
+                keystoreProperties.getProperty("keyPassword")
+                    ?: throw GradleException(
+                        "android/key.properties 缺少 keyPassword"
+                    )
+
+            storePassword =
+                keystoreProperties.getProperty("storePassword")
+                    ?: throw GradleException(
+                        "android/key.properties 缺少 storePassword"
+                    )
+
+            val storeFilePath =
+                keystoreProperties.getProperty("storeFile")
+                    ?: throw GradleException(
+                        "android/key.properties 缺少 storeFile"
+                    )
+
+            storeFile = file(storeFilePath)
+
+            if (storeFile == null || !storeFile!!.isFile) {
+                throw GradleException(
+                    "找不到 Android release keystore：${storeFile?.absolutePath}"
+                )
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }
 
+/*
+ * 取代已棄用的 android.kotlinOptions。
+ * 此區塊必須放在 android {} 外面。
+ */
 kotlin {
     compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 
