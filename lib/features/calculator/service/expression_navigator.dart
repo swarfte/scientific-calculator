@@ -66,12 +66,22 @@ class ExpressionNavigator {
 
     // 2. NumberNode 開頭（textOffset == 0）：離開至該 node 前方間隙。
     if (textOffset == 0) {
-      // 對稱於 _moveRight 規則 1 的合併：若此 NumberNode 是所在 sequence 的
-      // 第一個 child，且該 sequence 是其 owner 的第一個可編輯 child sequence，
-      // 則此間隙與 text 開頭視覺完全相同（隱形中間步），直接 _leaveSequenceStart
-      // 跳出 owner。
-      if (cursor.nodeOffset == 0 &&
-          _isFirstEditableSequence(index, cursor.sequenceId)) {
+      // 若此 NumberNode 是所在 sequence 的第一個 child，間隙與 text 開頭視覺
+      // 完全相同（隱形中間步）。
+      if (cursor.nodeOffset == 0) {
+        final location = index.findParentOfSequence(cursor.sequenceId);
+        if (location != null) {
+          // 有上一個 sibling sequence（例如分母 -> 分子）：直接跳過間隙步，
+          // 進入 sibling 末端。
+          final previous = _previousSiblingSequence(location);
+          if (previous != null) {
+            return CursorPosition(
+              sequenceId: previous.id,
+              nodeOffset: previous.children.length,
+            );
+          }
+        }
+        // 沒有 sibling（第一個 sequence）：合併間隙步，直接跳出 owner。
         return _leaveSequenceStart(index, cursor.sequenceId);
       }
       return cursor.copyWith(clearTextOffset: true);
@@ -106,13 +116,19 @@ class ExpressionNavigator {
         sequenceId: cursor.sequenceId,
         nodeOffset: cursor.nodeOffset + 1,
       );
-      // 若此間隙位於 sequence 末端，且該 sequence 是其 owner 的最後一個可編輯
-      // child sequence（例如 function argument / group content / square root
-      // radicand），則此間隙與前一個 text 末端視覺完全相同（TeX 相同），
-      // 形成「按一下無變化」的隱形中間步。此時直接執行 _leaveSequenceEnd
-      // 把兩步合併，讓單次方向鍵即有可見效果。
-      if (gapAfterNumber.nodeOffset >= sequence.children.length &&
-          _isLastEditableSequence(index, cursor.sequenceId)) {
+      // 若此間隙位於 sequence 末端，與前一個 text 末端視覺完全相同（TeX 相同），
+      // 形成「按一下無變化」的隱形中間步。
+      if (gapAfterNumber.nodeOffset >= sequence.children.length) {
+        // 有下一個 sibling sequence（例如分子 -> 分母）：直接跳過間隙步，
+        // 進入 sibling 開頭，讓單次方向鍵即有可見效果。
+        final location = index.findParentOfSequence(cursor.sequenceId);
+        if (location != null) {
+          final next = _nextSiblingSequence(location);
+          if (next != null) {
+            return CursorPosition(sequenceId: next.id, nodeOffset: 0);
+          }
+        }
+        // 沒有 sibling（最後一個 sequence）：合併間隙步，直接離開 owner。
         return _leaveSequenceEnd(index, cursor.sequenceId);
       }
       return gapAfterNumber;
@@ -342,31 +358,6 @@ class ExpressionNavigator {
       return null;
     }
     return siblings[currentIndex - 1].sequence;
-  }
-
-  /// 判斷 [sequenceId] 所指 sequence 是否為其 owner 的「最後一個」可編輯 child
-  /// sequence。root sequence（無 owner）回傳 true。
-  ///
-  /// 用於偵測視覺不可見的導航中間步：當游標位於 sequence 末端時，若沒有下一個
-  /// sibling sequence，下一步即離開 owner；此時間隙步與前一步視覺相同，應合併。
-  bool _isLastEditableSequence(TreeIndex index, NodeId sequenceId) {
-    final location = index.findParentOfSequence(sequenceId);
-    if (location == null) {
-      return true;
-    }
-    return _nextSiblingSequence(location) == null;
-  }
-
-  /// 判斷 [sequenceId] 所指 sequence 是否為其 owner 的「第一個」可編輯 child
-  /// sequence。root sequence（無 owner）回傳 true。
-  ///
-  /// `_isLastEditableSequence` 的對稱版本，用於向左方向的隱形中間步偵測。
-  bool _isFirstEditableSequence(TreeIndex index, NodeId sequenceId) {
-    final location = index.findParentOfSequence(sequenceId);
-    if (location == null) {
-      return true;
-    }
-    return _previousSiblingSequence(location) == null;
   }
 
   /// 回傳同一 owner 中，role 順序在 [location] 之後的可編輯 sequence。

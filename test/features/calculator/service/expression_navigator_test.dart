@@ -3,6 +3,7 @@ import 'package:scientific_calculator/features/calculator/model/expression/curso
 import 'package:scientific_calculator/features/calculator/model/expression/node/fraction_node.dart';
 import 'package:scientific_calculator/features/calculator/model/expression/node/function_node.dart';
 import 'package:scientific_calculator/features/calculator/model/expression/node/group_node.dart';
+import 'package:scientific_calculator/features/calculator/model/expression/node/mixed_fraction_node.dart';
 import 'package:scientific_calculator/features/calculator/model/expression/node/number_node.dart';
 import 'package:scientific_calculator/features/calculator/model/expression/node/operator_node.dart';
 import 'package:scientific_calculator/features/calculator/model/expression/node/power_node.dart';
@@ -355,8 +356,8 @@ void main() {
     });
   });
 
-  group('多 sequence owner 保留原行為（不誤合併）', () {
-    test('Fraction numerator 文字末端向右一下 -> 停在 numerator 末端間隙（不跳過 fraction）', () {
+  group('多 sequence owner 單次方向鍵跨越 sibling（消除隱形間隙步）', () {
+    test('Fraction numerator 文字末端向右一下 -> 直接進入 denominator 開頭', () {
       final numerator = SequenceNode(
         id: NodeId.generate(),
         children: [NumberNode.create('1')],
@@ -382,14 +383,12 @@ void main() {
 
       final moved = navigator.moveRight(doc);
 
-      // 仍有 sibling sequence（denominator）可去，不符合合併條件：停在
-      // numerator 末端間隙（與 flat sequence 一致，下一步才到 denominator）。
-      expect(moved.cursor.sequenceId, numerator.id);
-      expect(moved.cursor.nodeOffset, 1);
-      expect(moved.cursor.textOffset, isNull);
+      // 有 sibling sequence（denominator）：直接跳過間隙步，進入 denominator 開頭。
+      expect(moved.cursor.sequenceId, denominator.id);
+      expect(moved.cursor.nodeOffset, 0);
     });
 
-    test('Fraction denominator 文字開頭向左一下 -> 停在 denominator 開頭間隙（不跳過 fraction）', () {
+    test('Fraction denominator 文字開頭向左一下 -> 直接進入 numerator 末端', () {
       final numerator = SequenceNode(
         id: NodeId.generate(),
         children: [NumberNode.create('1')],
@@ -415,11 +414,68 @@ void main() {
 
       final moved = navigator.moveLeft(doc);
 
-      // 仍有 sibling sequence（numerator）可去，不符合合併條件：停在
-      // denominator 開頭間隙（與 flat sequence 一致，下一步才到 numerator）。
+      // 有 sibling sequence（numerator）：直接跳過間隙步，進入 numerator 末端。
+      expect(moved.cursor.sequenceId, numerator.id);
+      expect(moved.cursor.nodeOffset, 1);
+      expect(moved.cursor.textOffset, isNull);
+    });
+
+    test('MixedFraction whole 文字末端向右一下 -> 直接進入 numerator 開頭', () {
+      final whole = SequenceNode(
+        id: NodeId.generate(),
+        children: [NumberNode.create('1')],
+      );
+      final numerator = SequenceNode.empty();
+      final denominator = SequenceNode.empty();
+      final mixed = MixedFractionNode(
+        id: NodeId.generate(),
+        whole: whole,
+        numerator: numerator,
+        denominator: denominator,
+      );
+      final root = SequenceNode(id: NodeId.generate(), children: [mixed]);
+      final doc = TreeExpressionDocument(
+        root: root,
+        cursor: CursorPosition(
+          sequenceId: whole.id,
+          nodeOffset: 0,
+          textOffset: 1, // 1|
+        ),
+      );
+
+      final moved = navigator.moveRight(doc);
+
+      expect(moved.cursor.sequenceId, numerator.id);
+      expect(moved.cursor.nodeOffset, 0);
+    });
+
+    test('MixedFraction numerator 文字末端向右一下 -> 直接進入 denominator 開頭', () {
+      final whole = SequenceNode.empty();
+      final numerator = SequenceNode(
+        id: NodeId.generate(),
+        children: [NumberNode.create('2')],
+      );
+      final denominator = SequenceNode.empty();
+      final mixed = MixedFractionNode(
+        id: NodeId.generate(),
+        whole: whole,
+        numerator: numerator,
+        denominator: denominator,
+      );
+      final root = SequenceNode(id: NodeId.generate(), children: [mixed]);
+      final doc = TreeExpressionDocument(
+        root: root,
+        cursor: CursorPosition(
+          sequenceId: numerator.id,
+          nodeOffset: 0,
+          textOffset: 1, // 2|
+        ),
+      );
+
+      final moved = navigator.moveRight(doc);
+
       expect(moved.cursor.sequenceId, denominator.id);
       expect(moved.cursor.nodeOffset, 0);
-      expect(moved.cursor.textOffset, isNull);
     });
   });
 
