@@ -39,7 +39,7 @@ android {
 
     signingConfigs {
         create("release") {
-            if (!keystorePropertiesFile.exists()) {
+            if (!keystorePropertiesFile.isFile) {
                 throw GradleException(
                     "找不到 android/key.properties，不能建立 signed release APK。"
                 )
@@ -69,27 +69,32 @@ android {
                         "android/key.properties 缺少 storeFile"
                     )
 
-            storeFile = file(storeFilePath)
+            /*
+             * key.properties 位於 android/，而 storeFile 的路徑
+             * 亦以 Android root project，即 android/ 為基準。
+             */
+            val resolvedStoreFile =
+                rootProject.file(storeFilePath)
 
-            if (storeFile == null || !storeFile!!.isFile) {
+            if (!resolvedStoreFile.isFile) {
                 throw GradleException(
-                    "找不到 Android release keystore：${storeFile?.absolutePath}"
+                    "找不到 Android release keystore：" +
+                        resolvedStoreFile.absolutePath
                 )
             }
+
+            storeFile = resolvedStoreFile
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig =
+                signingConfigs.getByName("release")
         }
     }
 }
 
-/*
- * 取代已棄用的 android.kotlinOptions。
- * 此區塊必須放在 android {} 外面。
- */
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
