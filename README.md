@@ -12,6 +12,7 @@
 
 ## 目錄
 
+- [截圖預覽](#截圖預覽)
 - [特色功能](#特色功能)
 - [支援的數學運算](#支援的數學運算)
 - [鍵盤快速鍵](#鍵盤快速鍵)
@@ -24,6 +25,32 @@
 - [CI/CD](#cicd)
 - [平台支援](#平台支援)
 - [授權](#授權)
+
+---
+
+## 截圖預覽
+
+### 主畫面
+
+<table>
+  <tr>
+    <td align="center">淺色主題</td>
+    <td align="center">深色主題</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="public/main_light.png" alt="主畫面 — 淺色主題" width="320"/></td>
+    <td align="center"><img src="public/main_dark.png" alt="主畫面 — 深色主題" width="320"/></td>
+  </tr>
+</table>
+
+頂部工具列提供「視窗置頂」、「DEG/RAD 角度模式」與「DEC/FRAC 結果模式」切換,以及設定按鈕;
+顯示區以自然數學排版呈現運算式與結果,下方為 8 列分組的科學函數鍵盤。
+
+### 設定介面
+
+<img src="public/setting.png" alt="設定介面" width="320"/>
+
+提供主題切換(跟隨系統 / 淺色 / 深色)、版本資訊,以及應用程式內更新檢查。
 
 ---
 
