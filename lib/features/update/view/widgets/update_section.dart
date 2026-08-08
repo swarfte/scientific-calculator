@@ -25,7 +25,7 @@ class UpdateSection extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Update', style: theme.textTheme.titleSmall),
+        Text('更新', style: theme.textTheme.titleSmall),
         const SizedBox(height: 8),
         if (!isSupported)
           const _UnsupportedPlatformBody()
@@ -47,7 +47,7 @@ class _UnsupportedPlatformBody extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Automatic updates are not available on this platform.',
+          '此平台不支援自動更新。',
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 8),
@@ -74,7 +74,7 @@ class _CheckBody extends ConsumerWidget {
           child: FilledButton.tonalIcon(
             onPressed: () => controller.checkForUpdates(),
             icon: const Icon(Icons.system_update_alt, size: 18),
-            label: const Text('Check for updates'),
+            label: const Text('檢查更新'),
           ),
         );
 
@@ -88,7 +88,7 @@ class _CheckBody extends ConsumerWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
             const SizedBox(width: 12),
-            Text('Checking for updates…', style: theme.textTheme.bodySmall),
+            Text('正在檢查更新…', style: theme.textTheme.bodySmall),
           ],
         );
 
@@ -108,7 +108,7 @@ class _CheckBody extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Flexible(
                   child: Text(
-                    "You're on the latest version",
+                    '已是最新版本',
                     style: theme.textTheme.bodySmall,
                   ),
                 ),
@@ -117,7 +117,7 @@ class _CheckBody extends ConsumerWidget {
             const SizedBox(height: 4),
             TextButton(
               onPressed: () => controller.checkForUpdates(),
-              child: const Text('Check again'),
+              child: const Text('重新檢查'),
             ),
           ],
         );
@@ -128,7 +128,7 @@ class _CheckBody extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              state.checkError ?? 'Could not check for updates',
+              state.checkError ?? '無法檢查更新',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.error,
               ),
@@ -139,7 +139,7 @@ class _CheckBody extends ConsumerWidget {
               children: [
                 TextButton(
                   onPressed: () => controller.checkForUpdates(),
-                  child: const Text('Retry'),
+                  child: const Text('重試'),
                 ),
                 const _ReleasePageButton(),
               ],
@@ -180,8 +180,8 @@ class _UpdateAvailableBody extends ConsumerWidget {
             Flexible(
               child: Text(
                 release == null
-                    ? 'An update is available'
-                    : 'Update available: ${release.version.display}',
+                    ? '有可用的更新'
+                    : '有新版本：${release.version.display}',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -208,8 +208,8 @@ class _UpdateAvailableBody extends ConsumerWidget {
             children: [
               Text(
                 release == null
-                    ? 'Open Settings again after the check completes, or download it from GitHub.'
-                    : 'No installer for this platform in that release.',
+                    ? '檢查完成後請再次開啟設定，或前往 GitHub 下載。'
+                    : '此版本沒有對應此平台的安裝檔。',
                 style: theme.textTheme.bodySmall,
               ),
               const SizedBox(height: 4),
@@ -269,9 +269,9 @@ class _DownloadBody extends ConsumerWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
             const SizedBox(width: 12),
-            Flexible(
+              Flexible(
               child: Text(
-                'Opening the installer…',
+                '正在開啟安裝程式…',
                 style: theme.textTheme.bodySmall,
               ),
             ),
@@ -294,7 +294,7 @@ class _DownloadBody extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Flexible(
                   child: Text(
-                    'Downloaded — follow the installer to finish.',
+                    '下載完成 — 請依照安裝程式完成安裝。',
                     style: theme.textTheme.bodySmall,
                   ),
                 ),
@@ -310,7 +310,7 @@ class _DownloadBody extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              state.downloadError ?? 'Download failed',
+              state.downloadError ?? '下載失敗',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.error,
               ),
@@ -325,12 +325,12 @@ class _DownloadBody extends ConsumerWidget {
                 if (state.downloadedPath != null)
                   TextButton(
                     onPressed: controller.retryOpenDownloadedFile,
-                    child: const Text('Open installer'),
+                    child: const Text('開啟安裝程式'),
                   )
                 else
                   TextButton(
                     onPressed: controller.downloadAndInstall,
-                    child: const Text('Retry'),
+                    child: const Text('重試'),
                   ),
                 const _ReleasePageButton(),
               ],
@@ -386,7 +386,7 @@ class _ReleasePageButton extends ConsumerWidget {
           // 忽略：使用者仍可手動前往 GitHub。
         }
       },
-      child: const Text('Open release page'),
+      child: const Text('開啟發佈頁面'),
     );
   }
 }

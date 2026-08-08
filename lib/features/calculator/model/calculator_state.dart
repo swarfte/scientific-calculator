@@ -14,7 +14,7 @@ class CalculatorState {
     this.angleMode = AngleMode.degree,
     this.errorMessage,
     this.hasEvaluated = false,
-    this.answer,
+    this.answer = 0,
   });
 
   /// 算式的 Expression Tree（唯一 source of truth）。
@@ -31,8 +31,8 @@ class CalculatorState {
   /// 是否已按 `=` 完成計算（用於決定游標是否顯示）。
   final bool hasEvaluated;
 
-  /// 上一個答案，供 `Ans` 常數使用；首次啟動時為 `null`。
-  final double? answer;
+  /// 上一個答案，供 `Ans` 常數使用；首次啟動預設為 `0`。
+  final double answer;
 
   factory CalculatorState.initial() {
     return CalculatorState(document: ExpressionDocument.empty());
@@ -47,7 +47,6 @@ class CalculatorState {
     double? answer,
     bool clearResult = false,
     bool clearError = false,
-    bool clearAnswer = false,
   }) {
     return CalculatorState(
       document: document ?? this.document,
@@ -55,7 +54,7 @@ class CalculatorState {
       angleMode: angleMode ?? this.angleMode,
       errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
       hasEvaluated: hasEvaluated ?? this.hasEvaluated,
-      answer: clearAnswer ? null : answer ?? this.answer,
+      answer: answer ?? this.answer,
     );
   }
 }

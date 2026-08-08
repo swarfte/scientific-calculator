@@ -80,6 +80,18 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
     _inputFunction(MathFunction.tan);
   }
 
+  void inputArcSin() {
+    _inputFunction(MathFunction.asin);
+  }
+
+  void inputArcCos() {
+    _inputFunction(MathFunction.acos);
+  }
+
+  void inputArcTan() {
+    _inputFunction(MathFunction.atan);
+  }
+
   void inputLog10() {
     _inputFunction(MathFunction.log10);
   }
@@ -100,6 +112,10 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
 
   void inputEulerNumber() {
     _inputConstant(MathConstant.e);
+  }
+
+  void inputAnswer() {
+    _inputConstant(MathConstant.answer);
   }
 
   void _inputConstant(MathConstant constant) {
@@ -126,6 +142,22 @@ class CalculatorViewModel extends Notifier<CalculatorState> {
 
   void inputSquare() {
     _edit(_editor.insertSquare);
+  }
+
+  void inputLogarithm() {
+    _edit(_editor.insertLogarithm);
+  }
+
+  void inputLogarithmBase2() {
+    _edit(_editor.insertLogarithmBase2);
+  }
+
+  void inputMixedFraction() {
+    _edit(_editor.insertMixedFraction);
+  }
+
+  void inputScientific() {
+    _edit(_editor.insertScientific);
   }
 
   /// `(` 鍵：建立群組。

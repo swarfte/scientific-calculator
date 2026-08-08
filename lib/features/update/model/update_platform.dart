@@ -74,10 +74,10 @@ enum UpdatePlatform {
   /// 安裝檔在各平台的動作描述，用於按鈕文字。
   String get installActionLabel {
     return switch (this) {
-      UpdatePlatform.android => 'Download & install',
-      UpdatePlatform.windows => 'Download & install',
-      UpdatePlatform.macos => 'Download & open',
-      UpdatePlatform.unsupported => 'Download',
+      UpdatePlatform.android => '下載並安裝',
+      UpdatePlatform.windows => '下載並安裝',
+      UpdatePlatform.macos => '下載並開啟',
+      UpdatePlatform.unsupported => '下載',
     };
   }
 }

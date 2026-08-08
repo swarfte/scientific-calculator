@@ -22,14 +22,14 @@ class _SettingsDialog extends ConsumerWidget {
     final notifier = ref.read(themeSettingsProvider.notifier);
 
     return AlertDialog(
-      title: const Text('Settings'),
+      title: const Text('設定'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Theme',
+              '主題',
               style: Theme.of(context).textTheme.titleSmall,
             ),
             // RadioGroup 集中管理 groupValue 與 onChanged（Flutter 3.32+ 後
@@ -56,7 +56,7 @@ class _SettingsDialog extends ConsumerWidget {
               dense: true,
               contentPadding: EdgeInsets.zero,
               title: Text(
-                'Version',
+                '版本',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               subtitle: const _VersionText(),
@@ -69,7 +69,7 @@ class _SettingsDialog extends ConsumerWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
+          child: const Text('關閉'),
         ),
       ],
     );

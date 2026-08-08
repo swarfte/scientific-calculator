@@ -66,11 +66,11 @@ void main() {
       ],
     );
 
-    expect(find.text('Settings'), findsOneWidget);
-    expect(find.text('System'), findsOneWidget);
-    expect(find.text('Light'), findsOneWidget);
-    expect(find.text('Dark'), findsOneWidget);
-    expect(find.text('Version'), findsOneWidget);
+    expect(find.text('設定'), findsOneWidget);
+    expect(find.text('跟隨系統'), findsOneWidget);
+    expect(find.text('淺色'), findsOneWidget);
+    expect(find.text('深色'), findsOneWidget);
+    expect(find.text('版本'), findsOneWidget);
     expect(find.text('1.0.0 (build 1)'), findsOneWidget);
   });
 
@@ -85,8 +85,8 @@ void main() {
       ],
     );
 
-    expect(find.text('Update'), findsOneWidget);
-    expect(find.text('Check for updates'), findsOneWidget);
+    expect(find.text('更新'), findsOneWidget);
+    expect(find.text('檢查更新'), findsOneWidget);
     // 只有 UpdateCheckStarter（app 啟動）與使用者手動按鈕才會打 API。
     expect(client.callCount, 0);
   });
@@ -103,12 +103,12 @@ void main() {
       ],
     );
 
-    await tester.tap(find.text('Check for updates'));
+    await tester.tap(find.text('檢查更新'));
     await tester.pumpAndSettle();
 
     expect(client.callCount, 1);
-    expect(find.text('Update available: 2026.8.7 (build 6)'), findsOneWidget);
-    expect(find.text('Download & install'), findsOneWidget);
+    expect(find.text('有新版本：2026.8.7 (build 6)'), findsOneWidget);
+    expect(find.text('下載並安裝'), findsOneWidget);
   });
 
   testWidgets('預設選中 System，點 Light 後切換狀態', (tester) async {
@@ -130,7 +130,7 @@ void main() {
     expect(groupValue(), ThemePreference.system);
 
     // 點 Light。
-    await tester.tap(find.text('Light'));
+    await tester.tap(find.text('淺色'));
     await tester.pump();
 
     // 切換後：選中 Light。
@@ -145,10 +145,10 @@ void main() {
       ],
     );
 
-    await tester.tap(find.text('Close'));
+    await tester.tap(find.text('關閉'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Settings'), findsNothing);
+    expect(find.text('設定'), findsNothing);
   });
 
   testWidgets('SettingsButton 點擊後開啟對話框', (tester) async {
@@ -157,14 +157,14 @@ void main() {
     await tester.tap(find.byType(SettingsButton));
     await tester.pumpAndSettle();
 
-    expect(find.text('Settings'), findsOneWidget);
+    expect(find.text('設定'), findsOneWidget);
   });
 
   testWidgets('沒有新版本時設定按鈕不顯示紅點', (tester) async {
     await pumpSettingsButton(tester);
 
     expect(badgeVisible(tester), isFalse);
-    expect(find.byTooltip('Settings'), findsOneWidget);
+    expect(find.byTooltip('設定'), findsOneWidget);
   });
 
   testWidgets('背景檢查找到新版本後設定按鈕出現紅點', (tester) async {
@@ -180,7 +180,7 @@ void main() {
     await tester.pump();
 
     expect(badgeVisible(tester), isTrue);
-    expect(find.byTooltip('Settings — update available'), findsOneWidget);
+    expect(find.byTooltip('設定 — 有新版本'), findsOneWidget);
   });
 }
 

@@ -4,8 +4,8 @@ enum AngleMode {
 
   String get label {
     return switch (this) {
-      AngleMode.degree => 'DEG',
-      AngleMode.radian => 'RAD',
+      AngleMode.degree => '度',
+      AngleMode.radian => '弧度',
     };
   }
 }

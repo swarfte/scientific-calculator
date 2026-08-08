@@ -26,4 +26,25 @@ enum SequenceRole {
 
   /// [PowerNode.exponent]。
   powerExponent,
+
+  /// [LogarithmNode.base]。
+  logBase,
+
+  /// [LogarithmNode.argument]。
+  logArgument,
+
+  /// [MixedFractionNode.whole]。
+  mixedWhole,
+
+  /// [MixedFractionNode.numerator]。
+  mixedNumerator,
+
+  /// [MixedFractionNode.denominator]。
+  mixedDenominator,
+
+  /// [ScientificNode.mantissa]。
+  scientificMantissa,
+
+  /// [ScientificNode.exponent]。
+  scientificExponent,
 }

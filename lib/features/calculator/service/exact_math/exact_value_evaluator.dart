@@ -3,10 +3,13 @@ import '../../model/expression/node/constant_node.dart';
 import '../../model/expression/node/fraction_node.dart';
 import '../../model/expression/node/function_node.dart';
 import '../../model/expression/node/group_node.dart';
+import '../../model/expression/node/logarithm_node.dart';
+import '../../model/expression/node/mixed_fraction_node.dart';
 import '../../model/expression/node/number_node.dart';
 import '../../model/expression/node/operator_node.dart';
 import '../../model/expression/node/power_node.dart';
 import '../../model/expression/node/root_node.dart';
+import '../../model/expression/node/scientific_node.dart';
 import '../../model/expression/node/sequence_node.dart';
 import 'exact_number.dart';
 import 'rational.dart';
@@ -156,6 +159,30 @@ class _ExactParser {
         return _compileRoot(node);
       case PowerNode():
         return _compilePower(node);
+      case LogarithmNode():
+        // 對數非代數精確可表示，fallback decimal。
+        return null;
+      case MixedFractionNode():
+        final whole = parseSequence(node.whole);
+        final numerator = parseSequence(node.numerator);
+        final denominator = parseSequence(node.denominator);
+        if (whole == null || numerator == null || denominator == null) {
+          return null;
+        }
+        final frac = numerator.divide(denominator);
+        if (frac == null) return null;
+        return whole + frac;
+      case ScientificNode():
+        final mantissa = parseSequence(node.mantissa);
+        final exponent = parseSequence(node.exponent);
+        if (mantissa == null || exponent == null) return null;
+        if (!exponent.isRational || !exponent.rationalPart.isInteger) {
+          return null;
+        }
+        final n = exponent.rationalPart.truncateToBigInt();
+        final ni = n.toInt();
+        if (ni < 0 || BigInt.from(ni) != n) return null;
+        return mantissa * ExactNumber.fromInt(10).pow(ni);
       case GroupNode():
         return parseSequence(node.content);
       case SequenceNode():

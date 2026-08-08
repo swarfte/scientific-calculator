@@ -8,6 +8,7 @@ class CalculatorKey extends StatelessWidget {
     required this.onPressed,
     this.style = CalculatorKeyStyle.normal,
     this.flex = 1,
+    this.labelWidget,
     super.key,
   });
 
@@ -15,6 +16,12 @@ class CalculatorKey extends StatelessWidget {
   final VoidCallback onPressed;
   final CalculatorKeyStyle style;
   final int flex;
+
+  /// 自訂 label Widget（如上下標、帶分數等 2D 排版）。
+  ///
+  /// 為 `null` 時退回使用 [label] 純文字。提供 [label] 仍為必要，作為無障礙
+  /// 語義標籤與測試定位之用。
+  final Widget? labelWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -32,13 +39,13 @@ class CalculatorKey extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             onTap: onPressed,
             child: Center(
-              child: Text(
-                label,
+              child: DefaultTextStyle.merge(
                 style: TextStyle(
                   color: colors.foreground,
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
+                child: labelWidget ?? Text(label),
               ),
             ),
           ),

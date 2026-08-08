@@ -3,10 +3,13 @@ import '../model/expression/node/constant_node.dart';
 import '../model/expression/node/fraction_node.dart';
 import '../model/expression/node/function_node.dart';
 import '../model/expression/node/group_node.dart';
+import '../model/expression/node/logarithm_node.dart';
+import '../model/expression/node/mixed_fraction_node.dart';
 import '../model/expression/node/number_node.dart';
 import '../model/expression/node/operator_node.dart';
 import '../model/expression/node/power_node.dart';
 import '../model/expression/node/root_node.dart';
+import '../model/expression/node/scientific_node.dart';
 import '../model/expression/node/sequence_node.dart';
 import '../model/expression/node_id.dart';
 import '../model/expression/sequence_role.dart';
@@ -148,6 +151,28 @@ class TreeRewriter {
         return switch (role) {
           SequenceRole.powerBase => owner.copyWith(base: replacement),
           SequenceRole.powerExponent => owner.copyWith(exponent: replacement),
+          _ => owner,
+        };
+      case LogarithmNode():
+        return switch (role) {
+          SequenceRole.logBase => owner.copyWith(base: replacement),
+          SequenceRole.logArgument => owner.copyWith(argument: replacement),
+          _ => owner,
+        };
+      case MixedFractionNode():
+        return switch (role) {
+          SequenceRole.mixedWhole => owner.copyWith(whole: replacement),
+          SequenceRole.mixedNumerator => owner.copyWith(numerator: replacement),
+          SequenceRole.mixedDenominator =>
+            owner.copyWith(denominator: replacement),
+          _ => owner,
+        };
+      case ScientificNode():
+        return switch (role) {
+          SequenceRole.scientificMantissa =>
+            owner.copyWith(mantissa: replacement),
+          SequenceRole.scientificExponent =>
+            owner.copyWith(exponent: replacement),
           _ => owner,
         };
       case NumberNode():

@@ -9,13 +9,13 @@ import '../helpers/shared_preferences_test_helper.dart';
 void main() {
   group('ThemePreference', () {
     test('label 與 themeMode 對應', () {
-      expect(ThemePreference.system.label, 'System');
+      expect(ThemePreference.system.label, '跟隨系統');
       expect(ThemePreference.system.themeMode, ThemeMode.system);
 
-      expect(ThemePreference.light.label, 'Light');
+      expect(ThemePreference.light.label, '淺色');
       expect(ThemePreference.light.themeMode, ThemeMode.light);
 
-      expect(ThemePreference.dark.label, 'Dark');
+      expect(ThemePreference.dark.label, '深色');
       expect(ThemePreference.dark.themeMode, ThemeMode.dark);
     });
 

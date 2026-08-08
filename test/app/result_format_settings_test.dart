@@ -8,8 +8,8 @@ import '../helpers/shared_preferences_test_helper.dart';
 void main() {
   group('ResultFormatPreference', () {
     test('label 對應', () {
-      expect(ResultFormatPreference.decimal.label, 'DEC');
-      expect(ResultFormatPreference.fraction.label, 'FRAC');
+      expect(ResultFormatPreference.decimal.label, '小數');
+      expect(ResultFormatPreference.fraction.label, '分數');
     });
 
     test('fromName 只接受已知值，其餘回傳 decimal', () {
