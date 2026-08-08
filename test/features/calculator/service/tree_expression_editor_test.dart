@@ -252,13 +252,13 @@ void main() {
       expect(doc.cursor.sequenceId, root.radicand.id);
     });
 
-    test('nth root 有 degree，cursor 進 radicand', () {
+    test('nth root 有 degree，cursor 先進 degree（先輸次方數）', () {
       var doc = editor.insertNthRoot(TreeExpressionDocument.empty());
 
       final root = doc.root.children.first as RootNode;
       expect(root.isSquareRoot, isFalse);
       expect(root.degree, isNotNull);
-      expect(doc.cursor.sequenceId, root.radicand.id);
+      expect(doc.cursor.sequenceId, root.degree!.id);
     });
   });
 

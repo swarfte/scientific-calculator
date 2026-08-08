@@ -195,6 +195,26 @@ class TreeExpressionEditor {
       return document;
     }
 
+    // 若游標位於「指數類」sequence（ScientificNode.exponent / PowerNode.
+    // exponent）且該 sequence 非空，代表指數已完成：按二元運算符應先跳出 owner
+    // 至 parent sequence，再插入 operator，避免運算符被吃進指數（例如 1E3+6
+    // 不該變成 1E(3+6)）。
+    if (!sequence.isEmpty) {
+      final location = index.findParentOfSequence(sequence.id);
+      if (location != null &&
+          (location.role == SequenceRole.scientificExponent ||
+              location.role == SequenceRole.powerExponent) &&
+          location.parentSequence != null) {
+        final exited = document.copyWith(
+          cursor: CursorPosition(
+            sequenceId: location.parentSequence!.id,
+            nodeOffset: location.ownerIndex + 1,
+          ),
+        );
+        return insertOperator(exited, operator);
+      }
+    }
+
     // text mode：先離開 NumberNode 至後方間隙。
     final gapCursor = cursor.textOffset == null
         ? cursor
@@ -385,7 +405,7 @@ class TreeExpressionEditor {
     );
   }
 
-  /// 輸入 n 次根。游標進入 radicand。
+  /// 輸入 n 次根。游標先進入 degree（先輸入次方數），再由用戶導航至 radicand。
   TreeExpressionDocument insertNthRoot(TreeExpressionDocument document) {
     final index = TreeIndex(document.root);
     final cursor = index.clampCursor(document.cursor);
@@ -401,11 +421,11 @@ class TreeExpressionEditor {
       index,
       document,
       newSequence,
-      CursorPosition(sequenceId: node.radicand.id, nodeOffset: 0),
+      CursorPosition(sequenceId: node.degree!.id, nodeOffset: 0),
     );
   }
 
-  /// 輸入指數 `x^y`。左方 NumberNode 提升為 base，建立空 exponent，游標進入
+  /// 輸入指數 `x^y`。左方任意 node 提升為 base，建立空 exponent，游標進入
   /// exponent。
   TreeExpressionDocument insertPower(TreeExpressionDocument document) {
     final index = TreeIndex(document.root);
@@ -417,16 +437,16 @@ class TreeExpressionEditor {
 
     final offset = _gapOffset(cursor, sequence);
 
-    if (offset > 0 && sequence.children[offset - 1] is NumberNode) {
-      final left = sequence.children[offset - 1] as NumberNode;
+    final base = _wraptableLeftAsBase(sequence, offset);
+    if (base != null) {
       final power = PowerNode(
         id: NodeId.generate(),
-        base: SequenceNode(id: NodeId.generate(), children: [left]),
+        base: base.base,
         exponent: SequenceNode.empty(),
       );
       final newSequence = sequence
-          .removeAt(offset - 1)
-          .insert(offset - 1, power);
+          .removeAt(base.removeIndex)
+          .insert(base.removeIndex, power);
       return _commit(
         index,
         document,
@@ -446,7 +466,7 @@ class TreeExpressionEditor {
     );
   }
 
-  /// 輸入平方 `x^2`。左方 NumberNode 提升為 base，exponent 為 `2`，游標移到
+  /// 輸入平方 `x^2`。左方任意 node 提升為 base，exponent 為 `2`，游標移到
   /// PowerNode 後方。
   TreeExpressionDocument insertSquare(TreeExpressionDocument document) {
     final index = TreeIndex(document.root);
@@ -458,16 +478,10 @@ class TreeExpressionEditor {
 
     final offset = _gapOffset(cursor, sequence);
 
-    NumberNode? base;
-    if (offset > 0 && sequence.children[offset - 1] is NumberNode) {
-      base = sequence.children[offset - 1] as NumberNode;
-    }
-
+    final base = _wraptableLeftAsBase(sequence, offset);
     final power = PowerNode(
       id: NodeId.generate(),
-      base: base != null
-          ? SequenceNode(id: NodeId.generate(), children: [base])
-          : SequenceNode.empty(),
+      base: base?.base ?? SequenceNode.empty(),
       exponent: SequenceNode(
         id: NodeId.generate(),
         children: [NumberNode.create('2')],
@@ -477,8 +491,8 @@ class TreeExpressionEditor {
     SequenceNode newSequence;
     int cursorOffset;
     if (base != null) {
-      newSequence = sequence.removeAt(offset - 1).insert(offset - 1, power);
-      cursorOffset = offset;
+      newSequence = sequence.removeAt(base.removeIndex).insert(base.removeIndex, power);
+      cursorOffset = base.removeIndex + 1;
     } else {
       newSequence = sequence.insert(offset, power);
       cursorOffset = offset + 1;
@@ -492,12 +506,31 @@ class TreeExpressionEditor {
     );
   }
 
+  /// 若游標左方（gap offset 前）有任意 node，將其包成 base sequence。
+  /// 回傳 base sequence 與其在 parent sequence 中的 index（供 removeAt 用）。
+  /// OperatorNode 不視為 base（避免把運算符包進指數底數）。
+  ({SequenceNode base, int removeIndex})? _wraptableLeftAsBase(
+    SequenceNode sequence,
+    int offset,
+  ) {
+    if (offset > 0) {
+      final left = sequence.children[offset - 1];
+      if (left is! OperatorNode) {
+        return (
+          base: SequenceNode(id: NodeId.generate(), children: [left]),
+          removeIndex: offset - 1,
+        );
+      }
+    }
+    return null;
+  }
+
   // ---- 對數 / 帶分數 / 科學記號 ---------------------------------------------
 
   /// 輸入任意底數對數 `log_xy`。
   ///
-  /// - 左方為 NumberNode：提升為 argument，游標進入（空的）base。
-  /// - 空位置：建立空 LogarithmNode，游標進入 argument。
+  /// - 左方為 NumberNode：提升為 base，游標進入（空的）argument。
+  /// - 空位置：建立空 LogarithmNode，游標先進入 base（先輸底數）。
   TreeExpressionDocument insertLogarithm(TreeExpressionDocument document) {
     final index = TreeIndex(document.root);
     final cursor = index.clampCursor(document.cursor);
@@ -512,8 +545,8 @@ class TreeExpressionEditor {
       final left = sequence.children[offset - 1] as NumberNode;
       final node = LogarithmNode(
         id: NodeId.generate(),
-        base: SequenceNode.empty(),
-        argument: SequenceNode(id: NodeId.generate(), children: [left]),
+        base: SequenceNode(id: NodeId.generate(), children: [left]),
+        argument: SequenceNode.empty(),
       );
       final newSequence = sequence
           .removeAt(offset - 1)
@@ -522,7 +555,7 @@ class TreeExpressionEditor {
         index,
         document,
         newSequence,
-        CursorPosition(sequenceId: node.base.id, nodeOffset: 0),
+        CursorPosition(sequenceId: node.argument.id, nodeOffset: 0),
       );
     }
 
@@ -532,7 +565,7 @@ class TreeExpressionEditor {
       index,
       document,
       newSequence,
-      CursorPosition(sequenceId: node.argument.id, nodeOffset: 0),
+      CursorPosition(sequenceId: node.base.id, nodeOffset: 0),
     );
   }
 
