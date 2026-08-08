@@ -352,13 +352,13 @@ class CalculatorKeypad extends StatelessWidget {
           _widgetKey(
             semanticLabel: 'Exp',
             callback: onScientific,
-            style: CalculatorKeyStyle.normal,
+            style: CalculatorKeyStyle.function,
             label: const _TextIcon('Exp'),
           ),
           _widgetKey(
             semanticLabel: 'Ans',
             callback: onAnswer,
-            style: CalculatorKeyStyle.normal,
+            style: CalculatorKeyStyle.function,
             label: const _TextIcon('Ans'),
           ),
           _widgetKey(
